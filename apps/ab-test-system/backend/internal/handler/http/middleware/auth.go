@@ -45,3 +45,7 @@ func UserIDFromContext(ctx context.Context) (string, bool) {
 	uid, ok := ctx.Value(userIDKey).(string)
 	return uid, ok
 }
+
+func ContextWithUserID(ctx context.Context, uid string) context.Context {
+	return context.WithValue(ctx, userIDKey, uid)
+}

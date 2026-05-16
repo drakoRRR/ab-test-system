@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Projects module
+  version: 1.0.0
+
+paths:
+  /projects:
+    post:
+      tags: [projects]
+      summary: Create a project
+      operationId: CreateProject
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+
+    get:
+      tags: [projects]
+      summary: List projects for the current organization
+      operationId: ListProjects
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+
+    get:
+      tags: [projects]
+      summary: Get a project by ID
+      operationId: GetProject
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+    patch:
+      tags: [projects]
+      summary: Update a project
+      operationId: UpdateProject
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+    delete:
+      tags: [projects]
+      summary: Delete a project
+      operationId: DeleteProject
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Project deleted
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+components:
+  schemas:
+    Project:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "My App"
+        description:
+          type: string
+          example: "Production feature flags"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProjectRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500

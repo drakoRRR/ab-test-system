@@ -6,6 +6,8 @@ apis:
     root: ./base.yml
   user:
     root: ./user.yml
+  projects:
+    root: ./projects.yml
 
 rules:
   # Critical errors only

@@ -36,8 +36,7 @@ generate-api: bundle-api
 # ==================== MOCKS ====================
 .PHONY: generate-mocks
 generate-mocks:
-	go tool mockery
-.NOTPARALLEL: generate-mocks
+	mockery --config mockery.yaml
 
 # ==================== DEPENDENCIES ====================
 .PHONY: deps

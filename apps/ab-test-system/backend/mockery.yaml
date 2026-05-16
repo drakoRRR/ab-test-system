@@ -1,0 +1,21 @@
+with-expecter: true
+dir: "{{.InterfaceDirRelative}}/mocks"
+outpkg: mocks
+filename: "{{.InterfaceName}}_gen.go"
+resolve-type-alias: false
+disable-version-string: true
+issue-845-fix: true
+packages:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/user:
+    interfaces:
+      Storage:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project:
+    interfaces:
+      Storage:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user:
+    interfaces:
+      Service:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project:
+    interfaces:
+      UserService:
+      ProjectService:

@@ -22,10 +22,13 @@ import (
 	httphandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http"
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
+	projecthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project"
 	userhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
+	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
+	projectservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project"
 	userservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/user"
 
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/pkg/config"
@@ -53,7 +56,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Infrastructure
 	db, err := infrapostgres.New(ctx, cfg.Database)
 	if err != nil {
 		log.Fatal().Err(err).Msg("connecting to postgres")
@@ -83,8 +85,11 @@ func main() {
 	userSvc := userservice.NewService(userRepo)
 	userH := userhandler.NewHandler(userSvc)
 
-	// Aggregate server satisfies gen.StrictServerInterface
-	server := httpapi.NewServer(userH)
+	projectRepo := postgresproject.NewRepo(db)
+	projectSvc := projectservice.NewService(projectRepo)
+	projectH := projecthandler.NewHandler(userSvc, projectSvc)
+
+	server := httpapi.NewServer(userH, projectH)
 
 	// Auth middleware applied globally — every route requires a valid Firebase JWT
 	authMiddleware := middleware.Auth(fbAuth)

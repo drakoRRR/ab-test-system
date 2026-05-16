@@ -9,7 +9,7 @@ import (
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 )
 
-func (h *Handler) CreateUser(
+func (h *UserHandler) CreateUser(
 	ctx context.Context,
 	request gen.CreateUserRequestObject,
 ) (gen.CreateUserResponseObject, error) {
@@ -34,7 +34,7 @@ func (h *Handler) CreateUser(
 	return gen.CreateUser201JSONResponse(toAPIUser(u)), nil
 }
 
-func (h *Handler) GetCurrentUser(
+func (h *UserHandler) GetCurrentUser(
 	ctx context.Context,
 	_ gen.GetCurrentUserRequestObject,
 ) (gen.GetCurrentUserResponseObject, error) {
@@ -50,7 +50,7 @@ func (h *Handler) GetCurrentUser(
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.GetCurrentUser401JSONResponse{
 				UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{
-					Message: ptr("user not registered — call POST /users first"),
+					Message: ptr("user not registered"),
 				},
 			}, nil
 		}

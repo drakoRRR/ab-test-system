@@ -11,10 +11,10 @@ type Service interface {
 	GetCurrentUser(ctx context.Context, firebaseUID string) (domain.User, error)
 }
 
-type Handler struct {
+type UserHandler struct {
 	service Service
 }
 
-func NewHandler(service Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service Service) *UserHandler {
+	return &UserHandler{service: service}
 }

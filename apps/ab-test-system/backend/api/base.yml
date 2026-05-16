@@ -74,6 +74,15 @@ components:
           type: string
           format: date-time
 
+  parameters:
+    ProjectIdParam:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   responses:
     BadRequest:
       description: Bad request

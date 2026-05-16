@@ -1,0 +1,359 @@
+openapi: 3.0.3
+info:
+  title: AB Test Platform API
+  description: |
+    API for Feature Flags and A/B Testing Platform
+
+    This platform provides:
+    - Feature flags with targeting and gradual rollout
+    - A/B/n experiments with deterministic user assignment
+    - Event collection (exposure/conversion)
+    - Statistical analysis and uplift calculation
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+tags:
+  - name: users
+    description: User management
+    x-displayName: users
+  - name: projects
+    x-displayName: projects
+paths:
+  /users:
+    post:
+      tags:
+        - users
+      summary: Complete user registration
+      description: Creates user profile
+      operationId: CreateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User profile created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: Get current user profile
+      description: Returns the authenticated user's profile information
+      operationId: GetCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /projects:
+    post:
+      tags:
+        - projects
+      summary: Create a project
+      operationId: CreateProject
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags:
+        - projects
+      summary: List projects for the current organization
+      operationId: ListProjects
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+    get:
+      tags:
+        - projects
+      summary: Get a project by ID
+      operationId: GetProject
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - projects
+      summary: Update a project
+      operationId: UpdateProject
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - projects
+      summary: Delete a project
+      operationId: DeleteProject
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Project deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Auth JWT token
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: SDK API key for client/server SDKs
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        totalPages:
+          type: integer
+          example: 8
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        photoURL:
+          type: string
+          format: uri
+          example: https://lh3.googleusercontent.com/a/...
+        organizationId:
+          type: string
+          format: uuid
+          example: org-uuid-456
+        role:
+          type: string
+          enum:
+            - admin
+            - member
+            - viewer
+          example: member
+          description: |
+            User role in the organization:
+            - admin: Full access, can manage users and billing
+            - member: Can create and manage experiments
+            - viewer: Read-only access
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-02-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-02-15T12:00:00Z'
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: My App
+        description:
+          type: string
+          example: Production feature flags
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+  parameters:
+    ProjectIdParam:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

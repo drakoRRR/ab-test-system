@@ -18,6 +18,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gorilla/mux"
+	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -33,6 +34,12 @@ const (
 	Viewer UserRole = "viewer"
 )
 
+// CreateProjectRequest defines model for CreateProjectRequest.
+type CreateProjectRequest struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
 // CreateUserRequest defines model for CreateUserRequest.
 type CreateUserRequest struct {
 	Email openapi_types.Email `json:"email"`
@@ -45,6 +52,22 @@ type Error struct {
 	Details   *map[string]interface{} `json:"details,omitempty"`
 	Message   *string                 `json:"message,omitempty"`
 	Timestamp *time.Time              `json:"timestamp,omitempty"`
+}
+
+// Project defines model for Project.
+type Project struct {
+	CreatedAt      time.Time           `json:"createdAt"`
+	Description    *string             `json:"description,omitempty"`
+	Id             openapi_types.UUID  `json:"id"`
+	Name           string              `json:"name"`
+	OrganizationId *openapi_types.UUID `json:"organizationId,omitempty"`
+	UpdatedAt      *time.Time          `json:"updatedAt,omitempty"`
+}
+
+// UpdateProjectRequest defines model for UpdateProjectRequest.
+type UpdateProjectRequest struct {
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
 }
 
 // User defines model for User.
@@ -70,20 +93,47 @@ type User struct {
 // - viewer: Read-only access
 type UserRole string
 
+// ProjectIdParam defines model for ProjectIdParam.
+type ProjectIdParam = openapi_types.UUID
+
 // BadRequest defines model for BadRequest.
 type BadRequest = Error
 
 // Conflict defines model for Conflict.
 type Conflict = Error
 
+// NotFound defines model for NotFound.
+type NotFound = Error
+
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = Error
+
+// CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
+type CreateProjectJSONRequestBody = CreateProjectRequest
+
+// UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
+type UpdateProjectJSONRequestBody = UpdateProjectRequest
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List projects for the current organization
+	// (GET /projects)
+	ListProjects(w http.ResponseWriter, r *http.Request)
+	// Create a project
+	// (POST /projects)
+	CreateProject(w http.ResponseWriter, r *http.Request)
+	// Delete a project
+	// (DELETE /projects/{projectId})
+	DeleteProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Get a project by ID
+	// (GET /projects/{projectId})
+	GetProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Update a project
+	// (PATCH /projects/{projectId})
+	UpdateProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(w http.ResponseWriter, r *http.Request)
@@ -100,6 +150,139 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// ListProjects operation middleware
+func (siw *ServerInterfaceWrapper) ListProjects(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListProjects(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateProject operation middleware
+func (siw *ServerInterfaceWrapper) CreateProject(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateProject(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteProject operation middleware
+func (siw *ServerInterfaceWrapper) DeleteProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteProject(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetProject operation middleware
+func (siw *ServerInterfaceWrapper) GetProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProject(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateProject operation middleware
+func (siw *ServerInterfaceWrapper) UpdateProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateProject(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // CreateUser operation middleware
 func (siw *ServerInterfaceWrapper) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -248,6 +431,16 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.HandleFunc(options.BaseURL+"/projects", wrapper.ListProjects).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects", wrapper.CreateProject).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}", wrapper.DeleteProject).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}", wrapper.GetProject).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}", wrapper.UpdateProject).Methods("PATCH")
+
 	r.HandleFunc(options.BaseURL+"/users", wrapper.CreateUser).Methods("POST")
 
 	r.HandleFunc(options.BaseURL+"/users/me", wrapper.GetCurrentUser).Methods("GET")
@@ -259,7 +452,183 @@ type BadRequestJSONResponse Error
 
 type ConflictJSONResponse Error
 
+type NotFoundJSONResponse Error
+
 type UnauthorizedJSONResponse Error
+
+type ListProjectsRequestObject struct {
+}
+
+type ListProjectsResponseObject interface {
+	VisitListProjectsResponse(w http.ResponseWriter) error
+}
+
+type ListProjects200JSONResponse []Project
+
+func (response ListProjects200JSONResponse) VisitListProjectsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListProjects401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListProjects401JSONResponse) VisitListProjectsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateProjectRequestObject struct {
+	Body *CreateProjectJSONRequestBody
+}
+
+type CreateProjectResponseObject interface {
+	VisitCreateProjectResponse(w http.ResponseWriter) error
+}
+
+type CreateProject201JSONResponse Project
+
+func (response CreateProject201JSONResponse) VisitCreateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateProject400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateProject400JSONResponse) VisitCreateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateProject401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateProject401JSONResponse) VisitCreateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteProjectRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+}
+
+type DeleteProjectResponseObject interface {
+	VisitDeleteProjectResponse(w http.ResponseWriter) error
+}
+
+type DeleteProject204Response struct {
+}
+
+func (response DeleteProject204Response) VisitDeleteProjectResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteProject401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteProject401JSONResponse) VisitDeleteProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteProject404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteProject404JSONResponse) VisitDeleteProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetProjectRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+}
+
+type GetProjectResponseObject interface {
+	VisitGetProjectResponse(w http.ResponseWriter) error
+}
+
+type GetProject200JSONResponse Project
+
+func (response GetProject200JSONResponse) VisitGetProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetProject401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetProject401JSONResponse) VisitGetProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetProject404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetProject404JSONResponse) VisitGetProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateProjectRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	Body      *UpdateProjectJSONRequestBody
+}
+
+type UpdateProjectResponseObject interface {
+	VisitUpdateProjectResponse(w http.ResponseWriter) error
+}
+
+type UpdateProject200JSONResponse Project
+
+func (response UpdateProject200JSONResponse) VisitUpdateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateProject400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateProject400JSONResponse) VisitUpdateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateProject401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateProject401JSONResponse) VisitUpdateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateProject404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateProject404JSONResponse) VisitUpdateProjectResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type CreateUserRequestObject struct {
 	Body *CreateUserJSONRequestBody
@@ -332,6 +701,21 @@ func (response GetCurrentUser401JSONResponse) VisitGetCurrentUserResponse(w http
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// List projects for the current organization
+	// (GET /projects)
+	ListProjects(ctx context.Context, request ListProjectsRequestObject) (ListProjectsResponseObject, error)
+	// Create a project
+	// (POST /projects)
+	CreateProject(ctx context.Context, request CreateProjectRequestObject) (CreateProjectResponseObject, error)
+	// Delete a project
+	// (DELETE /projects/{projectId})
+	DeleteProject(ctx context.Context, request DeleteProjectRequestObject) (DeleteProjectResponseObject, error)
+	// Get a project by ID
+	// (GET /projects/{projectId})
+	GetProject(ctx context.Context, request GetProjectRequestObject) (GetProjectResponseObject, error)
+	// Update a project
+	// (PATCH /projects/{projectId})
+	UpdateProject(ctx context.Context, request UpdateProjectRequestObject) (UpdateProjectResponseObject, error)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error)
@@ -367,6 +751,146 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// ListProjects operation middleware
+func (sh *strictHandler) ListProjects(w http.ResponseWriter, r *http.Request) {
+	var request ListProjectsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListProjects(ctx, request.(ListProjectsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListProjects")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListProjectsResponseObject); ok {
+		if err := validResponse.VisitListProjectsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateProject operation middleware
+func (sh *strictHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
+	var request CreateProjectRequestObject
+
+	var body CreateProjectJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateProject(ctx, request.(CreateProjectRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateProject")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateProjectResponseObject); ok {
+		if err := validResponse.VisitCreateProjectResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteProject operation middleware
+func (sh *strictHandler) DeleteProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request DeleteProjectRequestObject
+
+	request.ProjectId = projectId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteProject(ctx, request.(DeleteProjectRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteProject")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteProjectResponseObject); ok {
+		if err := validResponse.VisitDeleteProjectResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetProject operation middleware
+func (sh *strictHandler) GetProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request GetProjectRequestObject
+
+	request.ProjectId = projectId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetProject(ctx, request.(GetProjectRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetProject")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetProjectResponseObject); ok {
+		if err := validResponse.VisitGetProjectResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateProject operation middleware
+func (sh *strictHandler) UpdateProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request UpdateProjectRequestObject
+
+	request.ProjectId = projectId
+
+	var body UpdateProjectJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateProject(ctx, request.(UpdateProjectRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateProject")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateProjectResponseObject); ok {
+		if err := validResponse.VisitUpdateProjectResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // CreateUser operation middleware
@@ -427,26 +951,33 @@ func (sh *strictHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
