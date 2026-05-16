@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: Users module
+  version: 1.0.0
+
+paths:
+  /users:
+    post:
+      tags: [users]
+      summary: Complete user registration
+      description: Creates user profile
+      operationId: CreateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User profile created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+  /users/me:
+    get:
+      tags: [users]
+      summary: Get current user profile
+      description: Returns the authenticated user's profile information
+      operationId: GetCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        photoURL:
+          type: string
+          format: uri
+          example: "https://lh3.googleusercontent.com/a/..."
+        organizationId:
+          type: string
+          format: uuid
+          example: "org-uuid-456"
+        role:
+          type: string
+          enum: [admin, member, viewer]
+          example: "member"
+          description: |
+            User role in the organization:
+            - admin: Full access, can manage users and billing
+            - member: Can create and manage experiments
+            - viewer: Read-only access
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-02-15T12:00:00Z"

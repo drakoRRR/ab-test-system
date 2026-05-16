@@ -1,0 +1,19 @@
+http_server:
+  port: 8080
+
+gcp_auth:
+  project_id: "your-firebase-project-id"
+
+database:
+  dsn: "postgres://abtest:abtest@localhost:5432/abtest?sslmode=disable"
+  max_conns: 10
+  min_conns: 2
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+kafka:
+  brokers:
+    - "localhost:9092"

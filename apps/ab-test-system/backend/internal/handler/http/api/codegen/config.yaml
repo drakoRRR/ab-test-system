@@ -1,0 +1,8 @@
+package: api
+generate:
+  models: true
+  gorilla-server: true
+  embedded-spec: true
+  strict-server: true
+
+output: internal/handler/http/api/codegen/api.gen.go

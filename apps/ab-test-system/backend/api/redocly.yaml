@@ -1,0 +1,24 @@
+extends:
+  - recommended
+
+apis:
+  base:
+    root: ./base.yml
+  user:
+    root: ./user.yml
+
+rules:
+  # Critical errors only
+  no-unresolved-refs: error
+  operation-operationId-unique: error
+  no-identical-paths: error
+  
+  # Disable pedantic warnings for dev
+  info-license: off
+  no-server-example.com: off
+  no-unused-components: off
+  operation-4xx-response: off
+  security-defined: off
+  
+decorators:
+  remove-x-internal: off
