@@ -8,6 +8,8 @@ apis:
     root: ./user.yml
   projects:
     root: ./projects.yml
+  api_keys:
+    root: ./api_keys.yml
 
 rules:
   # Critical errors only

@@ -21,13 +21,16 @@ import (
 
 	httphandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http"
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
+	apikeyhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	projecthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project"
 	userhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
+	postgresapikey "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/apikey"
 	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
+	apikeyservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/apikey"
 	projectservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project"
 	userservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/user"
 
@@ -89,7 +92,11 @@ func main() {
 	projectSvc := projectservice.NewService(projectRepo)
 	projectH := projecthandler.NewHandler(userSvc, projectSvc)
 
-	server := httpapi.NewServer(userH, projectH)
+	apiKeyRepo := postgresapikey.NewRepo(db)
+	apiKeySvc := apikeyservice.NewService(apiKeyRepo)
+	apiKeyH := apikeyhandler.NewHandler(apiKeySvc)
+
+	server := httpapi.NewServer(userH, projectH, apiKeyH)
 
 	// Auth middleware applied globally — every route requires a valid Firebase JWT
 	authMiddleware := middleware.Auth(fbAuth)

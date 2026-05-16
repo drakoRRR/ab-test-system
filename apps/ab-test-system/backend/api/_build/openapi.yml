@@ -22,6 +22,8 @@ tags:
     x-displayName: users
   - name: projects
     x-displayName: projects
+  - name: api-keys
+    x-displayName: api-keys
 paths:
   /users:
     post:
@@ -171,6 +173,78 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /projects/{projectId}/api-keys:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+    post:
+      tags:
+        - api-keys
+      summary: Create an API key for a project
+      operationId: CreateApiKey
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+      responses:
+        '201':
+          description: API key created — raw key returned only here
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags:
+        - api-keys
+      summary: List API keys for a project
+      operationId: ListApiKeys
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of API keys (raw key never returned)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiKey'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /projects/{projectId}/api-keys/{keyId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - name: keyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - api-keys
+      summary: Revoke an API key
+      operationId: RevokeApiKey
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: API key revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     BearerAuth:
@@ -312,6 +386,56 @@ components:
         description:
           type: string
           maxLength: 500
+    ApiKey:
+      type: object
+      required:
+        - id
+        - projectId
+        - name
+        - prefix
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Production
+        prefix:
+          type: string
+          description: First characters of the key for identification
+          example: sk_a1b2c3
+        createdAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ApiKeyCreated:
+      allOf:
+        - $ref: '#/components/schemas/ApiKey'
+        - type: object
+          required:
+            - key
+          properties:
+            key:
+              type: string
+              description: Raw API key — shown only once, store it securely
+              example: sk_a1b2c3d4e5f6...
+    CreateApiKeyRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Production
   parameters:
     ProjectIdParam:
       name: projectId

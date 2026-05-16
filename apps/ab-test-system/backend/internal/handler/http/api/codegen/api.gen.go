@@ -34,6 +34,38 @@ const (
 	Viewer UserRole = "viewer"
 )
 
+// ApiKey defines model for ApiKey.
+type ApiKey struct {
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+
+	// Prefix First characters of the key for identification
+	Prefix    string             `json:"prefix"`
+	ProjectId openapi_types.UUID `json:"projectId"`
+	RevokedAt *time.Time         `json:"revokedAt"`
+}
+
+// ApiKeyCreated defines model for ApiKeyCreated.
+type ApiKeyCreated struct {
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// Key Raw API key — shown only once, store it securely
+	Key  string `json:"key"`
+	Name string `json:"name"`
+
+	// Prefix First characters of the key for identification
+	Prefix    string             `json:"prefix"`
+	ProjectId openapi_types.UUID `json:"projectId"`
+	RevokedAt *time.Time         `json:"revokedAt"`
+}
+
+// CreateApiKeyRequest defines model for CreateApiKeyRequest.
+type CreateApiKeyRequest struct {
+	Name string `json:"name"`
+}
+
 // CreateProjectRequest defines model for CreateProjectRequest.
 type CreateProjectRequest struct {
 	Description *string `json:"description,omitempty"`
@@ -114,6 +146,9 @@ type CreateProjectJSONRequestBody = CreateProjectRequest
 // UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
 type UpdateProjectJSONRequestBody = UpdateProjectRequest
 
+// CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
+type CreateApiKeyJSONRequestBody = CreateApiKeyRequest
+
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest
 
@@ -134,6 +169,15 @@ type ServerInterface interface {
 	// Update a project
 	// (PATCH /projects/{projectId})
 	UpdateProject(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// List API keys for a project
+	// (GET /projects/{projectId}/api-keys)
+	ListApiKeys(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Create an API key for a project
+	// (POST /projects/{projectId}/api-keys)
+	CreateApiKey(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Revoke an API key
+	// (DELETE /projects/{projectId}/api-keys/{keyId})
+	RevokeApiKey(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, keyId openapi_types.UUID)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(w http.ResponseWriter, r *http.Request)
@@ -275,6 +319,108 @@ func (siw *ServerInterfaceWrapper) UpdateProject(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateProject(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListApiKeys operation middleware
+func (siw *ServerInterfaceWrapper) ListApiKeys(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListApiKeys(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateApiKey operation middleware
+func (siw *ServerInterfaceWrapper) CreateApiKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateApiKey(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeApiKey operation middleware
+func (siw *ServerInterfaceWrapper) RevokeApiKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "keyId" -------------
+	var keyId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyId", mux.Vars(r)["keyId"], &keyId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "keyId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeApiKey(w, r, projectId, keyId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -440,6 +586,12 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 	r.HandleFunc(options.BaseURL+"/projects/{projectId}", wrapper.GetProject).Methods("GET")
 
 	r.HandleFunc(options.BaseURL+"/projects/{projectId}", wrapper.UpdateProject).Methods("PATCH")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/api-keys", wrapper.ListApiKeys).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/api-keys", wrapper.CreateApiKey).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/api-keys/{keyId}", wrapper.RevokeApiKey).Methods("DELETE")
 
 	r.HandleFunc(options.BaseURL+"/users", wrapper.CreateUser).Methods("POST")
 
@@ -630,6 +782,121 @@ func (response UpdateProject404JSONResponse) VisitUpdateProjectResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListApiKeysRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+}
+
+type ListApiKeysResponseObject interface {
+	VisitListApiKeysResponse(w http.ResponseWriter) error
+}
+
+type ListApiKeys200JSONResponse []ApiKey
+
+func (response ListApiKeys200JSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListApiKeys401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListApiKeys401JSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListApiKeys404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListApiKeys404JSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateApiKeyRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	Body      *CreateApiKeyJSONRequestBody
+}
+
+type CreateApiKeyResponseObject interface {
+	VisitCreateApiKeyResponse(w http.ResponseWriter) error
+}
+
+type CreateApiKey201JSONResponse ApiKeyCreated
+
+func (response CreateApiKey201JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateApiKey400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateApiKey400JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateApiKey401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateApiKey401JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateApiKey404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CreateApiKey404JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RevokeApiKeyRequestObject struct {
+	ProjectId ProjectIdParam     `json:"projectId"`
+	KeyId     openapi_types.UUID `json:"keyId"`
+}
+
+type RevokeApiKeyResponseObject interface {
+	VisitRevokeApiKeyResponse(w http.ResponseWriter) error
+}
+
+type RevokeApiKey204Response struct {
+}
+
+func (response RevokeApiKey204Response) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RevokeApiKey401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response RevokeApiKey401JSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RevokeApiKey404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RevokeApiKey404JSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateUserRequestObject struct {
 	Body *CreateUserJSONRequestBody
 }
@@ -716,6 +983,15 @@ type StrictServerInterface interface {
 	// Update a project
 	// (PATCH /projects/{projectId})
 	UpdateProject(ctx context.Context, request UpdateProjectRequestObject) (UpdateProjectResponseObject, error)
+	// List API keys for a project
+	// (GET /projects/{projectId}/api-keys)
+	ListApiKeys(ctx context.Context, request ListApiKeysRequestObject) (ListApiKeysResponseObject, error)
+	// Create an API key for a project
+	// (POST /projects/{projectId}/api-keys)
+	CreateApiKey(ctx context.Context, request CreateApiKeyRequestObject) (CreateApiKeyResponseObject, error)
+	// Revoke an API key
+	// (DELETE /projects/{projectId}/api-keys/{keyId})
+	RevokeApiKey(ctx context.Context, request RevokeApiKeyRequestObject) (RevokeApiKeyResponseObject, error)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error)
@@ -893,6 +1169,92 @@ func (sh *strictHandler) UpdateProject(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
+// ListApiKeys operation middleware
+func (sh *strictHandler) ListApiKeys(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request ListApiKeysRequestObject
+
+	request.ProjectId = projectId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListApiKeys(ctx, request.(ListApiKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListApiKeys")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListApiKeysResponseObject); ok {
+		if err := validResponse.VisitListApiKeysResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateApiKey operation middleware
+func (sh *strictHandler) CreateApiKey(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request CreateApiKeyRequestObject
+
+	request.ProjectId = projectId
+
+	var body CreateApiKeyJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateApiKey(ctx, request.(CreateApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateApiKeyResponseObject); ok {
+		if err := validResponse.VisitCreateApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeApiKey operation middleware
+func (sh *strictHandler) RevokeApiKey(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, keyId openapi_types.UUID) {
+	var request RevokeApiKeyRequestObject
+
+	request.ProjectId = projectId
+	request.KeyId = keyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeApiKey(ctx, request.(RevokeApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeApiKeyResponseObject); ok {
+		if err := validResponse.VisitRevokeApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // CreateUser operation middleware
 func (sh *strictHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var request CreateUserRequestObject
@@ -951,33 +1313,39 @@ func (sh *strictHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"tbhZ/DcAAP//jaohkuoiAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
