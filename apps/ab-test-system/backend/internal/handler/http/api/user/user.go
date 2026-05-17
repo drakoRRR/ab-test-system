@@ -22,7 +22,7 @@ func (h *UserHandler) CreateUser(
 	uid, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
 		return gen.CreateUser401JSONResponse{
-			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")},
+			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")},
 		}, nil
 	}
 
@@ -41,7 +41,7 @@ func (h *UserHandler) GetCurrentUser(
 	uid, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
 		return gen.GetCurrentUser401JSONResponse{
-			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")},
+			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")},
 		}, nil
 	}
 

@@ -117,20 +117,20 @@ func TestUserHandler_GetCurrentUser(t *testing.T) {
 			},
 		},
 		{
-			name: "401 when user not registered",
-			ctx:  authedCtx(),
-			setupMock: func(mh *mockedHandler) {
-				mh.svc.EXPECT().GetCurrentUser(mock.Anything, "firebase-uid").Return(domain.User{}, domain.ErrNotFound)
-			},
+			name:      "401 on missing auth context",
+			ctx:       context.Background(),
+			setupMock: func(_ *mockedHandler) {},
 			assertErr: assert.NoError,
 			assertResp: func(t *testing.T, resp gen.GetCurrentUserResponseObject) {
 				assert.IsType(t, gen.GetCurrentUser401JSONResponse{}, resp)
 			},
 		},
 		{
-			name:      "401 when auth context missing",
-			ctx:       context.Background(),
-			setupMock: func(_ *mockedHandler) {},
+			name: "401 when user not registered",
+			ctx:  authedCtx(),
+			setupMock: func(mh *mockedHandler) {
+				mh.svc.EXPECT().GetCurrentUser(mock.Anything, "firebase-uid").Return(domain.User{}, domain.ErrNotFound)
+			},
 			assertErr: assert.NoError,
 			assertResp: func(t *testing.T, resp gen.GetCurrentUserResponseObject) {
 				assert.IsType(t, gen.GetCurrentUser401JSONResponse{}, resp)

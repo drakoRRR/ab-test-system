@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  title: Feature Flags module
+  version: 1.0.0
+
+paths:
+  /projects/{projectId}/flags:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+
+    post:
+      tags: [flags]
+      summary: Create a feature flag
+      operationId: CreateFlag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlagRequest'
+      responses:
+        '201':
+          description: Flag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+    get:
+      tags: [flags]
+      summary: List feature flags for a project
+      operationId: ListFlags
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of flags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flag'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+  /projects/{projectId}/flags/{flagKey}:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - name: flagKey
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [flags]
+      summary: Get a feature flag by key
+      operationId: GetFlag
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Flag found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+    patch:
+      tags: [flags]
+      summary: Update a feature flag
+      operationId: UpdateFlag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlagRequest'
+      responses:
+        '200':
+          description: Flag updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+    delete:
+      tags: [flags]
+      summary: Delete a feature flag
+      operationId: DeleteFlag
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Flag deleted
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+components:
+  schemas:
+    FlagRule:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [percentage]
+          example: "percentage"
+        value:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 50
+
+    Flag:
+      type: object
+      required: [id, projectId, key, name, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: "checkout-button"
+        name:
+          type: string
+          example: "Checkout Button"
+        enabled:
+          type: boolean
+          example: false
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagRule'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFlagRequest:
+      type: object
+      required: [key, name]
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+          example: "checkout-button"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Checkout Button"
+
+    UpdateFlagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        enabled:
+          type: boolean
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagRule'

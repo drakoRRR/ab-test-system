@@ -14,7 +14,7 @@ import (
 func (h *ProjectHandler) currentOrgID(ctx context.Context) (uuid.UUID, *gen.UnauthorizedJSONResponse) {
 	uid, ok := middleware.UserIDFromContext(ctx)
 	if !ok {
-		return uuid.UUID{}, &gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")}
+		return uuid.UUID{}, &gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")}
 	}
 
 	u, err := h.users.GetCurrentUser(ctx, uid)

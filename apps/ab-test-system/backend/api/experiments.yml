@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Experiments module
+  version: 1.0.0
+
+paths:
+  /projects/{projectId}/experiments:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+
+    post:
+      tags: [experiments]
+      summary: Create an experiment
+      operationId: CreateExperiment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperimentRequest'
+      responses:
+        '201':
+          description: Experiment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+    get:
+      tags: [experiments]
+      summary: List experiments for a project
+      operationId: ListExperiments
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of experiments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+
+  /projects/{projectId}/experiments/{experimentId}:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+
+    get:
+      tags: [experiments]
+      summary: Get an experiment by ID
+      operationId: GetExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+    patch:
+      tags: [experiments]
+      summary: Update experiment metadata (draft only)
+      operationId: UpdateExperiment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExperimentRequest'
+      responses:
+        '200':
+          description: Experiment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+    delete:
+      tags: [experiments]
+      summary: Delete an experiment (draft only)
+      operationId: DeleteExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Experiment deleted
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+  /projects/{projectId}/experiments/{experimentId}/start:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags: [experiments]
+      summary: Start an experiment (draft → running)
+      operationId: StartExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+  /projects/{projectId}/experiments/{experimentId}/pause:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags: [experiments]
+      summary: Pause a running experiment (running → paused)
+      operationId: PauseExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+  /projects/{projectId}/experiments/{experimentId}/resume:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags: [experiments]
+      summary: Resume a paused experiment (paused → running)
+      operationId: ResumeExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+  /projects/{projectId}/experiments/{experimentId}/complete:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags: [experiments]
+      summary: Complete an experiment (running/paused → completed)
+      operationId: CompleteExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+components:
+  parameters:
+    ExperimentIdParam:
+      name: experimentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ExperimentStatus:
+      type: string
+      enum: [draft, running, paused, completed]
+      example: draft
+
+    Variant:
+      type: object
+      required: [id, key, name, weight]
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: "control"
+        name:
+          type: string
+          example: "Control"
+        weight:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 50
+
+    CreateVariantRequest:
+      type: object
+      required: [key, name, weight]
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: "control"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Control"
+        weight:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 50
+
+    Experiment:
+      type: object
+      required: [id, projectId, name, status, trafficPercent, variants, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        flagId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          example: "Checkout button experiment"
+        description:
+          type: string
+          example: "Testing new checkout button color"
+        status:
+          $ref: '#/components/schemas/ExperimentStatus'
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 50
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variant'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateExperimentRequest:
+      type: object
+      required: [name, trafficPercent, variants]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Checkout button experiment"
+        description:
+          type: string
+          maxLength: 500
+          example: "Testing new checkout button color"
+        flagId:
+          type: string
+          format: uuid
+          description: "Optional flag to associate with this experiment"
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 50
+        variants:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/CreateVariantRequest'
+
+    UpdateExperimentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100

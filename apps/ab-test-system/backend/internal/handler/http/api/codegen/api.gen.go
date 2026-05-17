@@ -27,6 +27,19 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for ExperimentStatus.
+const (
+	Completed ExperimentStatus = "completed"
+	Draft     ExperimentStatus = "draft"
+	Paused    ExperimentStatus = "paused"
+	Running   ExperimentStatus = "running"
+)
+
+// Defines values for FlagRuleType.
+const (
+	Percentage FlagRuleType = "percentage"
+)
+
 // Defines values for UserRole.
 const (
 	Admin  UserRole = "admin"
@@ -66,6 +79,23 @@ type CreateApiKeyRequest struct {
 	Name string `json:"name"`
 }
 
+// CreateExperimentRequest defines model for CreateExperimentRequest.
+type CreateExperimentRequest struct {
+	Description *string `json:"description,omitempty"`
+
+	// FlagId Optional flag to associate with this experiment
+	FlagId         *openapi_types.UUID    `json:"flagId,omitempty"`
+	Name           string                 `json:"name"`
+	TrafficPercent float32                `json:"trafficPercent"`
+	Variants       []CreateVariantRequest `json:"variants"`
+}
+
+// CreateFlagRequest defines model for CreateFlagRequest.
+type CreateFlagRequest struct {
+	Key  string `json:"key"`
+	Name string `json:"name"`
+}
+
 // CreateProjectRequest defines model for CreateProjectRequest.
 type CreateProjectRequest struct {
 	Description *string `json:"description,omitempty"`
@@ -78,6 +108,13 @@ type CreateUserRequest struct {
 	Name  string              `json:"name"`
 }
 
+// CreateVariantRequest defines model for CreateVariantRequest.
+type CreateVariantRequest struct {
+	Key    string `json:"key"`
+	Name   string `json:"name"`
+	Weight int    `json:"weight"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Code      *string                 `json:"code,omitempty"`
@@ -85,6 +122,46 @@ type Error struct {
 	Message   *string                 `json:"message,omitempty"`
 	Timestamp *time.Time              `json:"timestamp,omitempty"`
 }
+
+// Experiment defines model for Experiment.
+type Experiment struct {
+	CreatedAt      time.Time           `json:"createdAt"`
+	Description    *string             `json:"description,omitempty"`
+	EndedAt        *time.Time          `json:"endedAt"`
+	FlagId         *openapi_types.UUID `json:"flagId"`
+	Id             openapi_types.UUID  `json:"id"`
+	Name           string              `json:"name"`
+	ProjectId      openapi_types.UUID  `json:"projectId"`
+	StartedAt      *time.Time          `json:"startedAt"`
+	Status         ExperimentStatus    `json:"status"`
+	TrafficPercent float32             `json:"trafficPercent"`
+	UpdatedAt      time.Time           `json:"updatedAt"`
+	Variants       []Variant           `json:"variants"`
+}
+
+// ExperimentStatus defines model for ExperimentStatus.
+type ExperimentStatus string
+
+// Flag defines model for Flag.
+type Flag struct {
+	CreatedAt time.Time          `json:"createdAt"`
+	Enabled   bool               `json:"enabled"`
+	Id        openapi_types.UUID `json:"id"`
+	Key       string             `json:"key"`
+	Name      string             `json:"name"`
+	ProjectId openapi_types.UUID `json:"projectId"`
+	Rules     *[]FlagRule        `json:"rules,omitempty"`
+	UpdatedAt time.Time          `json:"updatedAt"`
+}
+
+// FlagRule defines model for FlagRule.
+type FlagRule struct {
+	Type  FlagRuleType `json:"type"`
+	Value float32      `json:"value"`
+}
+
+// FlagRuleType defines model for FlagRule.Type.
+type FlagRuleType string
 
 // Project defines model for Project.
 type Project struct {
@@ -94,6 +171,20 @@ type Project struct {
 	Name           string              `json:"name"`
 	OrganizationId *openapi_types.UUID `json:"organizationId,omitempty"`
 	UpdatedAt      *time.Time          `json:"updatedAt,omitempty"`
+}
+
+// UpdateExperimentRequest defines model for UpdateExperimentRequest.
+type UpdateExperimentRequest struct {
+	Description    *string  `json:"description,omitempty"`
+	Name           *string  `json:"name,omitempty"`
+	TrafficPercent *float32 `json:"trafficPercent,omitempty"`
+}
+
+// UpdateFlagRequest defines model for UpdateFlagRequest.
+type UpdateFlagRequest struct {
+	Enabled *bool       `json:"enabled,omitempty"`
+	Name    *string     `json:"name,omitempty"`
+	Rules   *[]FlagRule `json:"rules,omitempty"`
 }
 
 // UpdateProjectRequest defines model for UpdateProjectRequest.
@@ -125,6 +216,17 @@ type User struct {
 // - viewer: Read-only access
 type UserRole string
 
+// Variant defines model for Variant.
+type Variant struct {
+	Id     openapi_types.UUID `json:"id"`
+	Key    string             `json:"key"`
+	Name   string             `json:"name"`
+	Weight int                `json:"weight"`
+}
+
+// ExperimentIdParam defines model for ExperimentIdParam.
+type ExperimentIdParam = openapi_types.UUID
+
 // ProjectIdParam defines model for ProjectIdParam.
 type ProjectIdParam = openapi_types.UUID
 
@@ -148,6 +250,18 @@ type UpdateProjectJSONRequestBody = UpdateProjectRequest
 
 // CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
 type CreateApiKeyJSONRequestBody = CreateApiKeyRequest
+
+// CreateExperimentJSONRequestBody defines body for CreateExperiment for application/json ContentType.
+type CreateExperimentJSONRequestBody = CreateExperimentRequest
+
+// UpdateExperimentJSONRequestBody defines body for UpdateExperiment for application/json ContentType.
+type UpdateExperimentJSONRequestBody = UpdateExperimentRequest
+
+// CreateFlagJSONRequestBody defines body for CreateFlag for application/json ContentType.
+type CreateFlagJSONRequestBody = CreateFlagRequest
+
+// UpdateFlagJSONRequestBody defines body for UpdateFlag for application/json ContentType.
+type UpdateFlagJSONRequestBody = UpdateFlagRequest
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUserRequest
@@ -178,6 +292,48 @@ type ServerInterface interface {
 	// Revoke an API key
 	// (DELETE /projects/{projectId}/api-keys/{keyId})
 	RevokeApiKey(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, keyId openapi_types.UUID)
+	// List experiments for a project
+	// (GET /projects/{projectId}/experiments)
+	ListExperiments(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Create an experiment
+	// (POST /projects/{projectId}/experiments)
+	CreateExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Delete an experiment (draft only)
+	// (DELETE /projects/{projectId}/experiments/{experimentId})
+	DeleteExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Get an experiment by ID
+	// (GET /projects/{projectId}/experiments/{experimentId})
+	GetExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Update experiment metadata (draft only)
+	// (PATCH /projects/{projectId}/experiments/{experimentId})
+	UpdateExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Complete an experiment (running/paused → completed)
+	// (POST /projects/{projectId}/experiments/{experimentId}/complete)
+	CompleteExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Pause a running experiment (running → paused)
+	// (POST /projects/{projectId}/experiments/{experimentId}/pause)
+	PauseExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Resume a paused experiment (paused → running)
+	// (POST /projects/{projectId}/experiments/{experimentId}/resume)
+	ResumeExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// Start an experiment (draft → running)
+	// (POST /projects/{projectId}/experiments/{experimentId}/start)
+	StartExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam)
+	// List feature flags for a project
+	// (GET /projects/{projectId}/flags)
+	ListFlags(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Create a feature flag
+	// (POST /projects/{projectId}/flags)
+	CreateFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam)
+	// Delete a feature flag
+	// (DELETE /projects/{projectId}/flags/{flagKey})
+	DeleteFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string)
+	// Get a feature flag by key
+	// (GET /projects/{projectId}/flags/{flagKey})
+	GetFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string)
+	// Update a feature flag
+	// (PATCH /projects/{projectId}/flags/{flagKey})
+	UpdateFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(w http.ResponseWriter, r *http.Request)
@@ -430,6 +586,530 @@ func (siw *ServerInterfaceWrapper) RevokeApiKey(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// ListExperiments operation middleware
+func (siw *ServerInterfaceWrapper) ListExperiments(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListExperiments(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateExperiment operation middleware
+func (siw *ServerInterfaceWrapper) CreateExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateExperiment(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteExperiment operation middleware
+func (siw *ServerInterfaceWrapper) DeleteExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetExperiment operation middleware
+func (siw *ServerInterfaceWrapper) GetExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateExperiment operation middleware
+func (siw *ServerInterfaceWrapper) UpdateExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CompleteExperiment operation middleware
+func (siw *ServerInterfaceWrapper) CompleteExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CompleteExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PauseExperiment operation middleware
+func (siw *ServerInterfaceWrapper) PauseExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PauseExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResumeExperiment operation middleware
+func (siw *ServerInterfaceWrapper) ResumeExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResumeExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartExperiment operation middleware
+func (siw *ServerInterfaceWrapper) StartExperiment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "experimentId" -------------
+	var experimentId ExperimentIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "experimentId", mux.Vars(r)["experimentId"], &experimentId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "experimentId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartExperiment(w, r, projectId, experimentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListFlags operation middleware
+func (siw *ServerInterfaceWrapper) ListFlags(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListFlags(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateFlag operation middleware
+func (siw *ServerInterfaceWrapper) CreateFlag(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateFlag(w, r, projectId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteFlag operation middleware
+func (siw *ServerInterfaceWrapper) DeleteFlag(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "flagKey" -------------
+	var flagKey string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "flagKey", mux.Vars(r)["flagKey"], &flagKey, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "flagKey", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteFlag(w, r, projectId, flagKey)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetFlag operation middleware
+func (siw *ServerInterfaceWrapper) GetFlag(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "flagKey" -------------
+	var flagKey string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "flagKey", mux.Vars(r)["flagKey"], &flagKey, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "flagKey", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFlag(w, r, projectId, flagKey)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateFlag operation middleware
+func (siw *ServerInterfaceWrapper) UpdateFlag(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "projectId" -------------
+	var projectId ProjectIdParam
+
+	err = runtime.BindStyledParameterWithOptions("simple", "projectId", mux.Vars(r)["projectId"], &projectId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "projectId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "flagKey" -------------
+	var flagKey string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "flagKey", mux.Vars(r)["flagKey"], &flagKey, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "flagKey", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateFlag(w, r, projectId, flagKey)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // CreateUser operation middleware
 func (siw *ServerInterfaceWrapper) CreateUser(w http.ResponseWriter, r *http.Request) {
 
@@ -592,6 +1272,34 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 	r.HandleFunc(options.BaseURL+"/projects/{projectId}/api-keys", wrapper.CreateApiKey).Methods("POST")
 
 	r.HandleFunc(options.BaseURL+"/projects/{projectId}/api-keys/{keyId}", wrapper.RevokeApiKey).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments", wrapper.ListExperiments).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments", wrapper.CreateExperiment).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}", wrapper.DeleteExperiment).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}", wrapper.GetExperiment).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}", wrapper.UpdateExperiment).Methods("PATCH")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}/complete", wrapper.CompleteExperiment).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}/pause", wrapper.PauseExperiment).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}/resume", wrapper.ResumeExperiment).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/experiments/{experimentId}/start", wrapper.StartExperiment).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/flags", wrapper.ListFlags).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/flags", wrapper.CreateFlag).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/flags/{flagKey}", wrapper.DeleteFlag).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/flags/{flagKey}", wrapper.GetFlag).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/projects/{projectId}/flags/{flagKey}", wrapper.UpdateFlag).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/users", wrapper.CreateUser).Methods("POST")
 
@@ -897,6 +1605,598 @@ func (response RevokeApiKey404JSONResponse) VisitRevokeApiKeyResponse(w http.Res
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListExperimentsRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+}
+
+type ListExperimentsResponseObject interface {
+	VisitListExperimentsResponse(w http.ResponseWriter) error
+}
+
+type ListExperiments200JSONResponse []Experiment
+
+func (response ListExperiments200JSONResponse) VisitListExperimentsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListExperiments401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListExperiments401JSONResponse) VisitListExperimentsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateExperimentRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	Body      *CreateExperimentJSONRequestBody
+}
+
+type CreateExperimentResponseObject interface {
+	VisitCreateExperimentResponse(w http.ResponseWriter) error
+}
+
+type CreateExperiment201JSONResponse Experiment
+
+func (response CreateExperiment201JSONResponse) VisitCreateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateExperiment400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateExperiment400JSONResponse) VisitCreateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateExperiment401JSONResponse) VisitCreateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CreateExperiment409JSONResponse) VisitCreateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type DeleteExperimentResponseObject interface {
+	VisitDeleteExperimentResponse(w http.ResponseWriter) error
+}
+
+type DeleteExperiment204Response struct {
+}
+
+func (response DeleteExperiment204Response) VisitDeleteExperimentResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteExperiment401JSONResponse) VisitDeleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteExperiment404JSONResponse) VisitDeleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response DeleteExperiment409JSONResponse) VisitDeleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type GetExperimentResponseObject interface {
+	VisitGetExperimentResponse(w http.ResponseWriter) error
+}
+
+type GetExperiment200JSONResponse Experiment
+
+func (response GetExperiment200JSONResponse) VisitGetExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetExperiment401JSONResponse) VisitGetExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetExperiment404JSONResponse) VisitGetExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+	Body         *UpdateExperimentJSONRequestBody
+}
+
+type UpdateExperimentResponseObject interface {
+	VisitUpdateExperimentResponse(w http.ResponseWriter) error
+}
+
+type UpdateExperiment200JSONResponse Experiment
+
+func (response UpdateExperiment200JSONResponse) VisitUpdateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateExperiment400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateExperiment400JSONResponse) VisitUpdateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateExperiment401JSONResponse) VisitUpdateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateExperiment404JSONResponse) VisitUpdateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response UpdateExperiment409JSONResponse) VisitUpdateExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompleteExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type CompleteExperimentResponseObject interface {
+	VisitCompleteExperimentResponse(w http.ResponseWriter) error
+}
+
+type CompleteExperiment200JSONResponse Experiment
+
+func (response CompleteExperiment200JSONResponse) VisitCompleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompleteExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CompleteExperiment401JSONResponse) VisitCompleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompleteExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CompleteExperiment404JSONResponse) VisitCompleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CompleteExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CompleteExperiment409JSONResponse) VisitCompleteExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PauseExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type PauseExperimentResponseObject interface {
+	VisitPauseExperimentResponse(w http.ResponseWriter) error
+}
+
+type PauseExperiment200JSONResponse Experiment
+
+func (response PauseExperiment200JSONResponse) VisitPauseExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PauseExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PauseExperiment401JSONResponse) VisitPauseExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PauseExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PauseExperiment404JSONResponse) VisitPauseExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PauseExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response PauseExperiment409JSONResponse) VisitPauseExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ResumeExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type ResumeExperimentResponseObject interface {
+	VisitResumeExperimentResponse(w http.ResponseWriter) error
+}
+
+type ResumeExperiment200JSONResponse Experiment
+
+func (response ResumeExperiment200JSONResponse) VisitResumeExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ResumeExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ResumeExperiment401JSONResponse) VisitResumeExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ResumeExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ResumeExperiment404JSONResponse) VisitResumeExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ResumeExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response ResumeExperiment409JSONResponse) VisitResumeExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartExperimentRequestObject struct {
+	ProjectId    ProjectIdParam    `json:"projectId"`
+	ExperimentId ExperimentIdParam `json:"experimentId"`
+}
+
+type StartExperimentResponseObject interface {
+	VisitStartExperimentResponse(w http.ResponseWriter) error
+}
+
+type StartExperiment200JSONResponse Experiment
+
+func (response StartExperiment200JSONResponse) VisitStartExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartExperiment401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response StartExperiment401JSONResponse) VisitStartExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartExperiment404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response StartExperiment404JSONResponse) VisitStartExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type StartExperiment409JSONResponse struct{ ConflictJSONResponse }
+
+func (response StartExperiment409JSONResponse) VisitStartExperimentResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListFlagsRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+}
+
+type ListFlagsResponseObject interface {
+	VisitListFlagsResponse(w http.ResponseWriter) error
+}
+
+type ListFlags200JSONResponse []Flag
+
+func (response ListFlags200JSONResponse) VisitListFlagsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListFlags401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListFlags401JSONResponse) VisitListFlagsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListFlags404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response ListFlags404JSONResponse) VisitListFlagsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateFlagRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	Body      *CreateFlagJSONRequestBody
+}
+
+type CreateFlagResponseObject interface {
+	VisitCreateFlagResponse(w http.ResponseWriter) error
+}
+
+type CreateFlag201JSONResponse Flag
+
+func (response CreateFlag201JSONResponse) VisitCreateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateFlag400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateFlag400JSONResponse) VisitCreateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateFlag401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateFlag401JSONResponse) VisitCreateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateFlag404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CreateFlag404JSONResponse) VisitCreateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateFlag409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CreateFlag409JSONResponse) VisitCreateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteFlagRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	FlagKey   string         `json:"flagKey"`
+}
+
+type DeleteFlagResponseObject interface {
+	VisitDeleteFlagResponse(w http.ResponseWriter) error
+}
+
+type DeleteFlag204Response struct {
+}
+
+func (response DeleteFlag204Response) VisitDeleteFlagResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteFlag401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteFlag401JSONResponse) VisitDeleteFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteFlag404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteFlag404JSONResponse) VisitDeleteFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFlagRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	FlagKey   string         `json:"flagKey"`
+}
+
+type GetFlagResponseObject interface {
+	VisitGetFlagResponse(w http.ResponseWriter) error
+}
+
+type GetFlag200JSONResponse Flag
+
+func (response GetFlag200JSONResponse) VisitGetFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFlag401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetFlag401JSONResponse) VisitGetFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetFlag404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetFlag404JSONResponse) VisitGetFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateFlagRequestObject struct {
+	ProjectId ProjectIdParam `json:"projectId"`
+	FlagKey   string         `json:"flagKey"`
+	Body      *UpdateFlagJSONRequestBody
+}
+
+type UpdateFlagResponseObject interface {
+	VisitUpdateFlagResponse(w http.ResponseWriter) error
+}
+
+type UpdateFlag200JSONResponse Flag
+
+func (response UpdateFlag200JSONResponse) VisitUpdateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateFlag400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateFlag400JSONResponse) VisitUpdateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateFlag401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateFlag401JSONResponse) VisitUpdateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateFlag404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateFlag404JSONResponse) VisitUpdateFlagResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateUserRequestObject struct {
 	Body *CreateUserJSONRequestBody
 }
@@ -992,6 +2292,48 @@ type StrictServerInterface interface {
 	// Revoke an API key
 	// (DELETE /projects/{projectId}/api-keys/{keyId})
 	RevokeApiKey(ctx context.Context, request RevokeApiKeyRequestObject) (RevokeApiKeyResponseObject, error)
+	// List experiments for a project
+	// (GET /projects/{projectId}/experiments)
+	ListExperiments(ctx context.Context, request ListExperimentsRequestObject) (ListExperimentsResponseObject, error)
+	// Create an experiment
+	// (POST /projects/{projectId}/experiments)
+	CreateExperiment(ctx context.Context, request CreateExperimentRequestObject) (CreateExperimentResponseObject, error)
+	// Delete an experiment (draft only)
+	// (DELETE /projects/{projectId}/experiments/{experimentId})
+	DeleteExperiment(ctx context.Context, request DeleteExperimentRequestObject) (DeleteExperimentResponseObject, error)
+	// Get an experiment by ID
+	// (GET /projects/{projectId}/experiments/{experimentId})
+	GetExperiment(ctx context.Context, request GetExperimentRequestObject) (GetExperimentResponseObject, error)
+	// Update experiment metadata (draft only)
+	// (PATCH /projects/{projectId}/experiments/{experimentId})
+	UpdateExperiment(ctx context.Context, request UpdateExperimentRequestObject) (UpdateExperimentResponseObject, error)
+	// Complete an experiment (running/paused → completed)
+	// (POST /projects/{projectId}/experiments/{experimentId}/complete)
+	CompleteExperiment(ctx context.Context, request CompleteExperimentRequestObject) (CompleteExperimentResponseObject, error)
+	// Pause a running experiment (running → paused)
+	// (POST /projects/{projectId}/experiments/{experimentId}/pause)
+	PauseExperiment(ctx context.Context, request PauseExperimentRequestObject) (PauseExperimentResponseObject, error)
+	// Resume a paused experiment (paused → running)
+	// (POST /projects/{projectId}/experiments/{experimentId}/resume)
+	ResumeExperiment(ctx context.Context, request ResumeExperimentRequestObject) (ResumeExperimentResponseObject, error)
+	// Start an experiment (draft → running)
+	// (POST /projects/{projectId}/experiments/{experimentId}/start)
+	StartExperiment(ctx context.Context, request StartExperimentRequestObject) (StartExperimentResponseObject, error)
+	// List feature flags for a project
+	// (GET /projects/{projectId}/flags)
+	ListFlags(ctx context.Context, request ListFlagsRequestObject) (ListFlagsResponseObject, error)
+	// Create a feature flag
+	// (POST /projects/{projectId}/flags)
+	CreateFlag(ctx context.Context, request CreateFlagRequestObject) (CreateFlagResponseObject, error)
+	// Delete a feature flag
+	// (DELETE /projects/{projectId}/flags/{flagKey})
+	DeleteFlag(ctx context.Context, request DeleteFlagRequestObject) (DeleteFlagResponseObject, error)
+	// Get a feature flag by key
+	// (GET /projects/{projectId}/flags/{flagKey})
+	GetFlag(ctx context.Context, request GetFlagRequestObject) (GetFlagResponseObject, error)
+	// Update a feature flag
+	// (PATCH /projects/{projectId}/flags/{flagKey})
+	UpdateFlag(ctx context.Context, request UpdateFlagRequestObject) (UpdateFlagResponseObject, error)
 	// Complete user registration
 	// (POST /users)
 	CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error)
@@ -1255,6 +2597,408 @@ func (sh *strictHandler) RevokeApiKey(w http.ResponseWriter, r *http.Request, pr
 	}
 }
 
+// ListExperiments operation middleware
+func (sh *strictHandler) ListExperiments(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request ListExperimentsRequestObject
+
+	request.ProjectId = projectId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListExperiments(ctx, request.(ListExperimentsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListExperiments")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListExperimentsResponseObject); ok {
+		if err := validResponse.VisitListExperimentsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateExperiment operation middleware
+func (sh *strictHandler) CreateExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request CreateExperimentRequestObject
+
+	request.ProjectId = projectId
+
+	var body CreateExperimentJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateExperiment(ctx, request.(CreateExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateExperimentResponseObject); ok {
+		if err := validResponse.VisitCreateExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteExperiment operation middleware
+func (sh *strictHandler) DeleteExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request DeleteExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteExperiment(ctx, request.(DeleteExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteExperimentResponseObject); ok {
+		if err := validResponse.VisitDeleteExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetExperiment operation middleware
+func (sh *strictHandler) GetExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request GetExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetExperiment(ctx, request.(GetExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetExperimentResponseObject); ok {
+		if err := validResponse.VisitGetExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateExperiment operation middleware
+func (sh *strictHandler) UpdateExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request UpdateExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	var body UpdateExperimentJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateExperiment(ctx, request.(UpdateExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateExperimentResponseObject); ok {
+		if err := validResponse.VisitUpdateExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CompleteExperiment operation middleware
+func (sh *strictHandler) CompleteExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request CompleteExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CompleteExperiment(ctx, request.(CompleteExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompleteExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CompleteExperimentResponseObject); ok {
+		if err := validResponse.VisitCompleteExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PauseExperiment operation middleware
+func (sh *strictHandler) PauseExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request PauseExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PauseExperiment(ctx, request.(PauseExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PauseExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PauseExperimentResponseObject); ok {
+		if err := validResponse.VisitPauseExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ResumeExperiment operation middleware
+func (sh *strictHandler) ResumeExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request ResumeExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ResumeExperiment(ctx, request.(ResumeExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ResumeExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ResumeExperimentResponseObject); ok {
+		if err := validResponse.VisitResumeExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StartExperiment operation middleware
+func (sh *strictHandler) StartExperiment(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, experimentId ExperimentIdParam) {
+	var request StartExperimentRequestObject
+
+	request.ProjectId = projectId
+	request.ExperimentId = experimentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartExperiment(ctx, request.(StartExperimentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartExperiment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartExperimentResponseObject); ok {
+		if err := validResponse.VisitStartExperimentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListFlags operation middleware
+func (sh *strictHandler) ListFlags(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request ListFlagsRequestObject
+
+	request.ProjectId = projectId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListFlags(ctx, request.(ListFlagsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListFlags")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListFlagsResponseObject); ok {
+		if err := validResponse.VisitListFlagsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateFlag operation middleware
+func (sh *strictHandler) CreateFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam) {
+	var request CreateFlagRequestObject
+
+	request.ProjectId = projectId
+
+	var body CreateFlagJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateFlag(ctx, request.(CreateFlagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateFlag")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateFlagResponseObject); ok {
+		if err := validResponse.VisitCreateFlagResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteFlag operation middleware
+func (sh *strictHandler) DeleteFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string) {
+	var request DeleteFlagRequestObject
+
+	request.ProjectId = projectId
+	request.FlagKey = flagKey
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteFlag(ctx, request.(DeleteFlagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteFlag")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteFlagResponseObject); ok {
+		if err := validResponse.VisitDeleteFlagResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetFlag operation middleware
+func (sh *strictHandler) GetFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string) {
+	var request GetFlagRequestObject
+
+	request.ProjectId = projectId
+	request.FlagKey = flagKey
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFlag(ctx, request.(GetFlagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetFlag")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetFlagResponseObject); ok {
+		if err := validResponse.VisitGetFlagResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateFlag operation middleware
+func (sh *strictHandler) UpdateFlag(w http.ResponseWriter, r *http.Request, projectId ProjectIdParam, flagKey string) {
+	var request UpdateFlagRequestObject
+
+	request.ProjectId = projectId
+	request.FlagKey = flagKey
+
+	var body UpdateFlagJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateFlag(ctx, request.(UpdateFlagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateFlag")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateFlagResponseObject); ok {
+		if err := validResponse.VisitUpdateFlagResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // CreateUser operation middleware
 func (sh *strictHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var request CreateUserRequestObject
@@ -1313,39 +3057,56 @@ func (sh *strictHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"tbhZ/DcAAP//jaohkuoiAAA=",
+	"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",
+	"AP//YJIW9fNOAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -24,6 +24,10 @@ tags:
     x-displayName: projects
   - name: api-keys
     x-displayName: api-keys
+  - name: flags
+    x-displayName: flags
+  - name: experiments
+    x-displayName: experiments
 paths:
   /users:
     post:
@@ -245,6 +249,332 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /projects/{projectId}/flags:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+    post:
+      tags:
+        - flags
+      summary: Create a feature flag
+      operationId: CreateFlag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFlagRequest'
+      responses:
+        '201':
+          description: Flag created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags:
+        - flags
+      summary: List feature flags for a project
+      operationId: ListFlags
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of flags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /projects/{projectId}/flags/{flagKey}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - name: flagKey
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - flags
+      summary: Get a feature flag by key
+      operationId: GetFlag
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Flag found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - flags
+      summary: Update a feature flag
+      operationId: UpdateFlag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFlagRequest'
+      responses:
+        '200':
+          description: Flag updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - flags
+      summary: Delete a feature flag
+      operationId: DeleteFlag
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Flag deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /projects/{projectId}/experiments:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+    post:
+      tags:
+        - experiments
+      summary: Create an experiment
+      operationId: CreateExperiment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperimentRequest'
+      responses:
+        '201':
+          description: Experiment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags:
+        - experiments
+      summary: List experiments for a project
+      operationId: ListExperiments
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of experiments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /projects/{projectId}/experiments/{experimentId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    get:
+      tags:
+        - experiments
+      summary: Get an experiment by ID
+      operationId: GetExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - experiments
+      summary: Update experiment metadata (draft only)
+      operationId: UpdateExperiment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExperimentRequest'
+      responses:
+        '200':
+          description: Experiment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+        - experiments
+      summary: Delete an experiment (draft only)
+      operationId: DeleteExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Experiment deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /projects/{projectId}/experiments/{experimentId}/start:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags:
+        - experiments
+      summary: Start an experiment (draft → running)
+      operationId: StartExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /projects/{projectId}/experiments/{experimentId}/pause:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags:
+        - experiments
+      summary: Pause a running experiment (running → paused)
+      operationId: PauseExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /projects/{projectId}/experiments/{experimentId}/resume:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags:
+        - experiments
+      summary: Resume a paused experiment (paused → running)
+      operationId: ResumeExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /projects/{projectId}/experiments/{experimentId}/complete:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    post:
+      tags:
+        - experiments
+      summary: Complete an experiment (running/paused → completed)
+      operationId: CompleteExperiment
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
 components:
   securitySchemes:
     BearerAuth:
@@ -436,9 +766,250 @@ components:
           minLength: 1
           maxLength: 100
           example: Production
+    FlagRule:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          type: string
+          enum:
+            - percentage
+          example: percentage
+        value:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 50
+    Flag:
+      type: object
+      required:
+        - id
+        - projectId
+        - key
+        - name
+        - enabled
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: checkout-button
+        name:
+          type: string
+          example: Checkout Button
+        enabled:
+          type: boolean
+          example: false
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagRule'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateFlagRequest:
+      type: object
+      required:
+        - key
+        - name
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[a-z0-9][a-z0-9-]*[a-z0-9]$
+          example: checkout-button
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Checkout Button
+    UpdateFlagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        enabled:
+          type: boolean
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlagRule'
+    ExperimentStatus:
+      type: string
+      enum:
+        - draft
+        - running
+        - paused
+        - completed
+      example: draft
+    Variant:
+      type: object
+      required:
+        - id
+        - key
+        - name
+        - weight
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: control
+        name:
+          type: string
+          example: Control
+        weight:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 50
+    CreateVariantRequest:
+      type: object
+      required:
+        - key
+        - name
+        - weight
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: control
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Control
+        weight:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 50
+    Experiment:
+      type: object
+      required:
+        - id
+        - projectId
+        - name
+        - status
+        - trafficPercent
+        - variants
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        flagId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          example: Checkout button experiment
+        description:
+          type: string
+          example: Testing new checkout button color
+        status:
+          $ref: '#/components/schemas/ExperimentStatus'
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 50
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variant'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+    CreateExperimentRequest:
+      type: object
+      required:
+        - name
+        - trafficPercent
+        - variants
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Checkout button experiment
+        description:
+          type: string
+          maxLength: 500
+          example: Testing new checkout button color
+        flagId:
+          type: string
+          format: uuid
+          description: Optional flag to associate with this experiment
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 50
+        variants:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/CreateVariantRequest'
+    UpdateExperimentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        trafficPercent:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
   parameters:
     ProjectIdParam:
       name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExperimentIdParam:
+      name: experimentId
       in: path
       required: true
       schema:

@@ -46,7 +46,7 @@ func (r keyRow) toDomain() domain.Key {
 
 func (r *Repo) Create(ctx context.Context, key domain.Key) (domain.Key, error) {
 	const q = `
-		INSERT INTO sdk_keys (id, project_id, name, key_hash, prefix)
+		INSERT INTO api_keys (id, project_id, name, key_hash, prefix)
 		VALUES (@id, @project_id, @name, @key_hash, @prefix)
 		RETURNING id, project_id, name, key_hash, prefix, created_at, revoked_at`
 
@@ -72,7 +72,7 @@ func (r *Repo) Create(ctx context.Context, key domain.Key) (domain.Key, error) {
 func (r *Repo) List(ctx context.Context, projectID uuid.UUID) ([]domain.Key, error) {
 	const q = `
 		SELECT id, project_id, name, key_hash, prefix, created_at, revoked_at
-		FROM sdk_keys WHERE project_id = @project_id ORDER BY created_at DESC`
+		FROM api_keys WHERE project_id = @project_id ORDER BY created_at DESC`
 
 	rows, err := r.db.Query(ctx, q, pgx.NamedArgs{"project_id": projectID})
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *Repo) List(ctx context.Context, projectID uuid.UUID) ([]domain.Key, err
 
 func (r *Repo) Revoke(ctx context.Context, id, projectID uuid.UUID) error {
 	const q = `
-		UPDATE sdk_keys SET revoked_at = NOW()
+		UPDATE api_keys SET revoked_at = NOW()
 		WHERE id = @id AND project_id = @project_id AND revoked_at IS NULL`
 
 	result, err := r.db.Exec(ctx, q, pgx.NamedArgs{"id": id, "project_id": projectID})
@@ -112,7 +112,7 @@ func (r *Repo) Revoke(ctx context.Context, id, projectID uuid.UUID) error {
 func (r *Repo) GetByKeyHash(ctx context.Context, keyHash string) (domain.Key, error) {
 	const q = `
 		SELECT id, project_id, name, key_hash, prefix, created_at, revoked_at
-		FROM sdk_keys WHERE key_hash = @key_hash AND revoked_at IS NULL`
+		FROM api_keys WHERE key_hash = @key_hash AND revoked_at IS NULL`
 
 	rows, err := r.db.Query(ctx, q, pgx.NamedArgs{"key_hash": keyHash})
 	if err != nil {

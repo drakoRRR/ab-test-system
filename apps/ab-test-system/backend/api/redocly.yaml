@@ -10,6 +10,10 @@ apis:
     root: ./projects.yml
   api_keys:
     root: ./api_keys.yml
+  flags:
+    root: ./flags.yml
+  experiments:
+    root: ./experiments.yml
 
 rules:
   # Critical errors only

@@ -60,6 +60,16 @@ func TestProjectHandler_CreateProject(t *testing.T) {
 			},
 		},
 		{
+			name:      "401 on missing auth context",
+			ctx:       context.Background(),
+			body:      validBody,
+			setupMock: func(_ *mockedHandler) {},
+			assertErr: assert.NoError,
+			assertResp: func(t *testing.T, resp gen.CreateProjectResponseObject) {
+				assert.IsType(t, gen.CreateProject401JSONResponse{}, resp)
+			},
+		},
+		{
 			name:      "401 when user has no organization",
 			ctx:       authedCtx(),
 			body:      validBody,

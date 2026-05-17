@@ -23,14 +23,20 @@ import (
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
 	apikeyhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
+	experimenthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment"
+	flaghandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/flag"
 	projecthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project"
 	userhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
 	postgresapikey "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/apikey"
+	postgresexperiment "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/experiment"
+	postgresflag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/flag"
 	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
 	apikeyservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/apikey"
+	experimentservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/experiment"
+	flagservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/flag"
 	projectservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project"
 	userservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/user"
 
@@ -96,7 +102,15 @@ func main() {
 	apiKeySvc := apikeyservice.NewService(apiKeyRepo)
 	apiKeyH := apikeyhandler.NewHandler(apiKeySvc)
 
-	server := httpapi.NewServer(userH, projectH, apiKeyH)
+	flagRepo := postgresflag.NewRepo(db)
+	flagSvc := flagservice.NewService(flagRepo)
+	flagH := flaghandler.NewHandler(flagSvc)
+
+	experimentRepo := postgresexperiment.NewRepo(db)
+	experimentSvc := experimentservice.NewService(experimentRepo)
+	experimentH := experimenthandler.NewHandler(experimentSvc)
+
+	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH)
 
 	// Auth middleware applied globally — every route requires a valid Firebase JWT
 	authMiddleware := middleware.Auth(fbAuth)

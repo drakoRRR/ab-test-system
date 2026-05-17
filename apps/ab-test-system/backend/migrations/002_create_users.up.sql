@@ -1,4 +1,3 @@
--- +migrate Up
 CREATE TYPE user_role AS ENUM ('admin', 'member', 'viewer');
 
 CREATE TABLE users (
@@ -15,7 +14,3 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_firebase_uid ON users(firebase_uid);
 CREATE INDEX idx_users_org_id       ON users(org_id);
-
--- +migrate Down
-DROP TABLE IF EXISTS users;
-DROP TYPE  IF EXISTS user_role;

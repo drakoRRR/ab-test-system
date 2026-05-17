@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
   tests: true
@@ -6,16 +8,12 @@ linters:
   disable-all: true
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
 
     - revive
-    - goimports
-    - gofumpt
     - lll
     - misspell
 
@@ -27,25 +25,39 @@ linters:
     - bodyclose
     - noctx
 
-linters-settings:
-  goimports:
-    local-prefixes: github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
 
-  gofumpt:
-    module-path: github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend
+    lll:
+      line-length: 120
 
-  lll:
-    line-length: 120
+    funlen:
+      lines: 100
 
-  funlen:
-    lines: 100
+    gocyclo:
+      min-complexity: 15
 
-  gocyclo:
-    min-complexity: 15
+    gosec:
+      excludes:
+        - G104
 
-  gosec:
-    excludes:
-      - G104
+formatters:
+  enable:
+    - goimports
+    - gofumpt
+
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend
+
+    gofumpt:
+      module-path: github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend
 
 issues:
   exclude-dirs:
@@ -54,12 +66,22 @@ issues:
     - var
     - tmp
     - internal/handler/http/api/codegen
+    - ".*mocks$"
 
   exclude-rules:
     - path: _test\.go
       linters:
         - funlen
         - gocyclo
+        - gosec
+
+    - path: cmd/
+      linters:
+        - funlen
+        - gocritic
+
+    - path: pkg/config/
+      linters:
         - gosec
 
     # SQL strings in const blocks are intentionally long

@@ -15,15 +15,15 @@ func (h *APIKeyHandler) CreateApiKey(
 	ctx context.Context,
 	request gen.CreateApiKeyRequestObject,
 ) (gen.CreateApiKeyResponseObject, error) {
-	if request.Body == nil {
-		return gen.CreateApiKey400JSONResponse{
-			BadRequestJSONResponse: gen.BadRequestJSONResponse{Message: ptr("request body is required")},
+	if _, ok := middleware.UserIDFromContext(ctx); !ok {
+		return gen.CreateApiKey401JSONResponse{
+			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")},
 		}, nil
 	}
 
-	if _, ok := middleware.UserIDFromContext(ctx); !ok {
-		return gen.CreateApiKey401JSONResponse{
-			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")},
+	if request.Body == nil {
+		return gen.CreateApiKey400JSONResponse{
+			BadRequestJSONResponse: gen.BadRequestJSONResponse{Message: ptr("request body is required")},
 		}, nil
 	}
 
@@ -47,7 +47,7 @@ func (h *APIKeyHandler) ListApiKeys(
 ) (gen.ListApiKeysResponseObject, error) {
 	if _, ok := middleware.UserIDFromContext(ctx); !ok {
 		return gen.ListApiKeys401JSONResponse{
-			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")},
+			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")},
 		}, nil
 	}
 
@@ -70,7 +70,7 @@ func (h *APIKeyHandler) RevokeApiKey(
 ) (gen.RevokeApiKeyResponseObject, error) {
 	if _, ok := middleware.UserIDFromContext(ctx); !ok {
 		return gen.RevokeApiKey401JSONResponse{
-			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("missing auth context")},
+			UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Message: ptr("unauthorized")},
 		}, nil
 	}
 
