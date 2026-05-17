@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -120,7 +119,7 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.CreateExperiment(tc.ctx, gen.CreateExperimentRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				Body:      tc.body,
 			})
 
@@ -181,7 +180,7 @@ func TestExperimentHandler_ListExperiments(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.ListExperiments(tc.ctx, gen.ListExperimentsRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 			})
 
 			tc.assertErr(t, err)
@@ -243,8 +242,8 @@ func TestExperimentHandler_GetExperiment(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.GetExperiment(tc.ctx, gen.GetExperimentRequestObject{
-				ProjectId:    openapi_types.UUID(fixedProjectID),
-				ExperimentId: openapi_types.UUID(fixedExperimentID),
+				ProjectId:    fixedProjectID,
+				ExperimentId: fixedExperimentID,
 			})
 
 			tc.assertErr(t, err)
@@ -340,8 +339,8 @@ func TestExperimentHandler_UpdateExperiment(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.UpdateExperiment(tc.ctx, gen.UpdateExperimentRequestObject{
-				ProjectId:    openapi_types.UUID(fixedProjectID),
-				ExperimentId: openapi_types.UUID(fixedExperimentID),
+				ProjectId:    fixedProjectID,
+				ExperimentId: fixedExperimentID,
 				Body:         tc.body,
 			})
 
@@ -413,8 +412,8 @@ func TestExperimentHandler_DeleteExperiment(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.DeleteExperiment(tc.ctx, gen.DeleteExperimentRequestObject{
-				ProjectId:    openapi_types.UUID(fixedProjectID),
-				ExperimentId: openapi_types.UUID(fixedExperimentID),
+				ProjectId:    fixedProjectID,
+				ExperimentId: fixedExperimentID,
 			})
 
 			tc.assertErr(t, err)
@@ -444,7 +443,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.StartExperiment(ctx, gen.StartExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -458,7 +457,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			setupMock: func(_ *mockedHandler) {},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.StartExperiment(ctx, gen.StartExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -476,7 +475,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.StartExperiment(ctx, gen.StartExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -492,7 +491,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.PauseExperiment(ctx, gen.PauseExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -506,7 +505,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			setupMock: func(_ *mockedHandler) {},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.PauseExperiment(ctx, gen.PauseExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -522,7 +521,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.ResumeExperiment(ctx, gen.ResumeExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -536,7 +535,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			setupMock: func(_ *mockedHandler) {},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.ResumeExperiment(ctx, gen.ResumeExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -552,7 +551,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.CompleteExperiment(ctx, gen.CompleteExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,
@@ -566,7 +565,7 @@ func TestExperimentHandler_Lifecycle(t *testing.T) {
 			setupMock: func(_ *mockedHandler) {},
 			do: func(mh *mockedHandler, ctx context.Context) (interface{}, error) {
 				return mh.CompleteExperiment(ctx, gen.CompleteExperimentRequestObject{
-					ProjectId: openapi_types.UUID(fixedProjectID), ExperimentId: openapi_types.UUID(fixedExperimentID),
+					ProjectId: fixedProjectID, ExperimentId: fixedExperimentID,
 				})
 			},
 			assertErr: assert.NoError,

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -94,7 +93,7 @@ func TestAPIKeyHandler_CreateApiKey(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.CreateApiKey(tc.ctx, gen.CreateApiKeyRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				Body:      tc.body,
 			})
 
@@ -171,7 +170,7 @@ func TestAPIKeyHandler_ListApiKeys(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.ListApiKeys(tc.ctx, gen.ListApiKeysRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 			})
 
 			tc.assertErr(t, err)
@@ -239,8 +238,8 @@ func TestAPIKeyHandler_RevokeApiKey(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.RevokeApiKey(tc.ctx, gen.RevokeApiKeyRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
-				KeyId:     openapi_types.UUID(fixedKeyID),
+				ProjectId: fixedProjectID,
+				KeyId:     fixedKeyID,
 			})
 
 			tc.assertErr(t, err)

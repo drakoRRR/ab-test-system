@@ -1,8 +1,6 @@
 package flag
 
 import (
-	openapi_types "github.com/oapi-codegen/runtime/types"
-
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 )
@@ -17,8 +15,8 @@ func toAPIFlag(f domain.Flag) gen.Flag {
 	}
 
 	return gen.Flag{
-		Id:        openapi_types.UUID(f.ID),
-		ProjectId: openapi_types.UUID(f.ProjectID),
+		Id:        f.ID,
+		ProjectId: f.ProjectID,
 		Key:       f.Key,
 		Name:      f.Name,
 		Enabled:   f.Enabled,

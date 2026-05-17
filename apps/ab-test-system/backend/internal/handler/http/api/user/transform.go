@@ -21,7 +21,7 @@ func toAPIUser(u domain.User) gen.User {
 	}
 
 	if u.OrgID != nil {
-		orgID := openapi_types.UUID(*u.OrgID)
+		orgID := *u.OrgID
 		out.OrganizationId = &orgID
 	}
 

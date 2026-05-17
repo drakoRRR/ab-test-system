@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
-
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
@@ -27,7 +25,7 @@ func (h *FlagHandler) CreateFlag(
 		}, nil
 	}
 
-	f, err := h.service.Create(ctx, uuid.UUID(request.ProjectId), request.Body.Key, request.Body.Name)
+	f, err := h.service.Create(ctx, request.ProjectId, request.Body.Key, request.Body.Name)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			return gen.CreateFlag409JSONResponse{
@@ -51,7 +49,7 @@ func (h *FlagHandler) ListFlags(
 		}, nil
 	}
 
-	flags, err := h.service.List(ctx, uuid.UUID(request.ProjectId))
+	flags, err := h.service.List(ctx, request.ProjectId)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +72,7 @@ func (h *FlagHandler) GetFlag(
 		}, nil
 	}
 
-	f, err := h.service.GetByKey(ctx, uuid.UUID(request.ProjectId), request.FlagKey)
+	f, err := h.service.GetByKey(ctx, request.ProjectId, request.FlagKey)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.GetFlag404JSONResponse{
@@ -111,7 +109,7 @@ func (h *FlagHandler) UpdateFlag(
 	}
 
 	f, err := h.service.Update(ctx, domain.UpdateParams{
-		ProjectID: uuid.UUID(request.ProjectId),
+		ProjectID: request.ProjectId,
 		Key:       request.FlagKey,
 		Name:      request.Body.Name,
 		Enabled:   request.Body.Enabled,
@@ -140,7 +138,7 @@ func (h *FlagHandler) DeleteFlag(
 		}, nil
 	}
 
-	if err := h.service.Delete(ctx, uuid.UUID(request.ProjectId), request.FlagKey); err != nil {
+	if err := h.service.Delete(ctx, request.ProjectId, request.FlagKey); err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.DeleteFlag404JSONResponse{
 				NotFoundJSONResponse: gen.NotFoundJSONResponse{Message: ptr("flag not found")},

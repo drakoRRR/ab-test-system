@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
-
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/experiment"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
@@ -27,15 +25,9 @@ func (h *ExperimentHandler) CreateExperiment(
 		}, nil
 	}
 
-	var flagID *uuid.UUID
-	if request.Body.FlagId != nil {
-		id := uuid.UUID(*request.Body.FlagId)
-		flagID = &id
-	}
-
 	exp, err := h.service.Create(ctx, domain.CreateParams{
-		ProjectID:      uuid.UUID(request.ProjectId),
-		FlagID:         flagID,
+		ProjectID:      request.ProjectId,
+		FlagID:         request.Body.FlagId,
 		Name:           request.Body.Name,
 		Description:    derefString(request.Body.Description),
 		TrafficPercent: float64(request.Body.TrafficPercent),
@@ -64,7 +56,7 @@ func (h *ExperimentHandler) ListExperiments(
 		}, nil
 	}
 
-	experiments, err := h.service.List(ctx, uuid.UUID(request.ProjectId))
+	experiments, err := h.service.List(ctx, request.ProjectId)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +79,7 @@ func (h *ExperimentHandler) GetExperiment(
 		}, nil
 	}
 
-	exp, err := h.service.GetByID(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId))
+	exp, err := h.service.GetByID(ctx, request.ProjectId, request.ExperimentId)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.GetExperiment404JSONResponse{
@@ -124,8 +116,8 @@ func (h *ExperimentHandler) UpdateExperiment(
 	}
 
 	exp, err := h.service.Update(ctx, domain.UpdateParams{
-		ProjectID:      uuid.UUID(request.ProjectId),
-		ExperimentID:   uuid.UUID(request.ExperimentId),
+		ProjectID:      request.ProjectId,
+		ExperimentID:   request.ExperimentId,
 		Name:           request.Body.Name,
 		Description:    request.Body.Description,
 		TrafficPercent: trafficPercent,
@@ -158,7 +150,7 @@ func (h *ExperimentHandler) DeleteExperiment(
 		}, nil
 	}
 
-	if err := h.service.Delete(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId)); err != nil {
+	if err := h.service.Delete(ctx, request.ProjectId, request.ExperimentId); err != nil {
 		switch {
 		case errors.Is(err, domain.ErrNotFound):
 			return gen.DeleteExperiment404JSONResponse{
@@ -186,7 +178,7 @@ func (h *ExperimentHandler) StartExperiment(
 		}, nil
 	}
 
-	exp, err := h.service.Start(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId))
+	exp, err := h.service.Start(ctx, request.ProjectId, request.ExperimentId)
 	if err != nil {
 		return handleTransitionError[gen.StartExperimentResponseObject](
 			err,
@@ -212,7 +204,7 @@ func (h *ExperimentHandler) PauseExperiment(
 		}, nil
 	}
 
-	exp, err := h.service.Pause(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId))
+	exp, err := h.service.Pause(ctx, request.ProjectId, request.ExperimentId)
 	if err != nil {
 		return handleTransitionError[gen.PauseExperimentResponseObject](
 			err,
@@ -238,7 +230,7 @@ func (h *ExperimentHandler) ResumeExperiment(
 		}, nil
 	}
 
-	exp, err := h.service.Resume(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId))
+	exp, err := h.service.Resume(ctx, request.ProjectId, request.ExperimentId)
 	if err != nil {
 		return handleTransitionError[gen.ResumeExperimentResponseObject](
 			err,
@@ -264,7 +256,7 @@ func (h *ExperimentHandler) CompleteExperiment(
 		}, nil
 	}
 
-	exp, err := h.service.Complete(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.ExperimentId))
+	exp, err := h.service.Complete(ctx, request.ProjectId, request.ExperimentId)
 	if err != nil {
 		return handleTransitionError[gen.CompleteExperimentResponseObject](
 			err,

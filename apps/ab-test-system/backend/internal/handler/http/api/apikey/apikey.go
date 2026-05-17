@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
-
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/apikey"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
@@ -27,7 +25,7 @@ func (h *APIKeyHandler) CreateApiKey(
 		}, nil
 	}
 
-	key, raw, err := h.service.Create(ctx, uuid.UUID(request.ProjectId), request.Body.Name)
+	key, raw, err := h.service.Create(ctx, request.ProjectId, request.Body.Name)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.CreateApiKey404JSONResponse{
@@ -51,7 +49,7 @@ func (h *APIKeyHandler) ListApiKeys(
 		}, nil
 	}
 
-	keys, err := h.service.List(ctx, uuid.UUID(request.ProjectId))
+	keys, err := h.service.List(ctx, request.ProjectId)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +72,7 @@ func (h *APIKeyHandler) RevokeApiKey(
 		}, nil
 	}
 
-	err := h.service.Revoke(ctx, uuid.UUID(request.ProjectId), uuid.UUID(request.KeyId))
+	err := h.service.Revoke(ctx, request.ProjectId, request.KeyId)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.RevokeApiKey404JSONResponse{

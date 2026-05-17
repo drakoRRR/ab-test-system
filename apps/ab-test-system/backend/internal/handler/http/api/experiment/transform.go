@@ -1,8 +1,6 @@
 package experiment
 
 import (
-	openapi_types "github.com/oapi-codegen/runtime/types"
-
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/experiment"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 )
@@ -10,9 +8,8 @@ import (
 func toAPIExperiment(exp domain.Experiment) gen.Experiment {
 	variants := make([]gen.Variant, len(exp.Variants))
 	for i, v := range exp.Variants {
-		id := openapi_types.UUID(v.ID)
 		variants[i] = gen.Variant{
-			Id:     id,
+			Id:     v.ID,
 			Key:    v.Key,
 			Name:   v.Name,
 			Weight: v.Weight,
@@ -20,8 +17,8 @@ func toAPIExperiment(exp domain.Experiment) gen.Experiment {
 	}
 
 	out := gen.Experiment{
-		Id:             openapi_types.UUID(exp.ID),
-		ProjectId:      openapi_types.UUID(exp.ProjectID),
+		Id:             exp.ID,
+		ProjectId:      exp.ProjectID,
 		Name:           exp.Name,
 		Status:         gen.ExperimentStatus(exp.Status),
 		TrafficPercent: float32(exp.TrafficPercent),
@@ -37,8 +34,7 @@ func toAPIExperiment(exp domain.Experiment) gen.Experiment {
 	}
 
 	if exp.FlagID != nil {
-		id := openapi_types.UUID(*exp.FlagID)
-		out.FlagId = &id
+		out.FlagId = exp.FlagID
 	}
 
 	return out

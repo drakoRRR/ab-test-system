@@ -5,8 +5,9 @@ package mocks
 import (
 	context "context"
 
-	flag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
 	mock "github.com/stretchr/testify/mock"
+
+	flag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
 
 	uuid "github.com/google/uuid"
 )

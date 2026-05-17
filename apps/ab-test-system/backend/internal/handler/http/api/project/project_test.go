@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -154,7 +153,7 @@ func TestProjectHandler_GetProject(t *testing.T) {
 		assertResp func(t *testing.T, resp gen.GetProjectResponseObject)
 	}
 
-	projectParam := openapi_types.UUID(fixedProjectID)
+	projectParam := fixedProjectID
 
 	tests := []testCase{
 		{
@@ -215,7 +214,7 @@ func TestProjectHandler_UpdateProject(t *testing.T) {
 		assertResp func(t *testing.T, resp gen.UpdateProjectResponseObject)
 	}
 
-	projectParam := openapi_types.UUID(fixedProjectID)
+	projectParam := fixedProjectID
 	validBody := &gen.UpdateProjectJSONRequestBody{Name: ptr("Updated")}
 
 	tests := []testCase{
@@ -288,7 +287,7 @@ func TestProjectHandler_DeleteProject(t *testing.T) {
 		assertResp func(t *testing.T, resp gen.DeleteProjectResponseObject)
 	}
 
-	projectParam := openapi_types.UUID(fixedProjectID)
+	projectParam := fixedProjectID
 
 	tests := []testCase{
 		{

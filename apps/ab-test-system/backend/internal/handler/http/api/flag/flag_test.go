@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -101,7 +100,7 @@ func TestFlagHandler_CreateFlag(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.CreateFlag(tc.ctx, gen.CreateFlagRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				Body:      tc.body,
 			})
 
@@ -162,7 +161,7 @@ func TestFlagHandler_ListFlags(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.ListFlags(tc.ctx, gen.ListFlagsRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 			})
 
 			tc.assertErr(t, err)
@@ -224,7 +223,7 @@ func TestFlagHandler_GetFlag(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.GetFlag(tc.ctx, gen.GetFlagRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				FlagKey:   "checkout-button",
 			})
 
@@ -307,7 +306,7 @@ func TestFlagHandler_UpdateFlag(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.UpdateFlag(tc.ctx, gen.UpdateFlagRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				FlagKey:   "checkout-button",
 				Body:      tc.body,
 			})
@@ -369,7 +368,7 @@ func TestFlagHandler_DeleteFlag(t *testing.T) {
 			tc.setupMock(mh)
 
 			resp, err := mh.DeleteFlag(tc.ctx, gen.DeleteFlagRequestObject{
-				ProjectId: openapi_types.UUID(fixedProjectID),
+				ProjectId: fixedProjectID,
 				FlagKey:   "checkout-button",
 			})
 

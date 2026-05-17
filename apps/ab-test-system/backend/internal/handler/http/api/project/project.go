@@ -88,7 +88,7 @@ func (h *ProjectHandler) GetProject(
 		return gen.GetProject401JSONResponse{UnauthorizedJSONResponse: *unauthorized}, nil
 	}
 
-	p, err := h.projects.GetByID(ctx, orgID, uuid.UUID(request.ProjectId))
+	p, err := h.projects.GetByID(ctx, orgID, request.ProjectId)
 	if err != nil {
 		if errors.Is(err, domainproject.ErrNotFound) {
 			return gen.GetProject404JSONResponse{
@@ -119,7 +119,7 @@ func (h *ProjectHandler) UpdateProject(
 
 	p, err := h.projects.Update(ctx, domainproject.UpdateParams{
 		OrgID:       orgID,
-		ProjectID:   uuid.UUID(request.ProjectId),
+		ProjectID:   request.ProjectId,
 		Name:        request.Body.Name,
 		Description: request.Body.Description,
 	})
@@ -145,7 +145,7 @@ func (h *ProjectHandler) DeleteProject(
 		return gen.DeleteProject401JSONResponse{UnauthorizedJSONResponse: *unauthorized}, nil
 	}
 
-	err := h.projects.Delete(ctx, orgID, uuid.UUID(request.ProjectId))
+	err := h.projects.Delete(ctx, orgID, request.ProjectId)
 	if err != nil {
 		if errors.Is(err, domainproject.ErrNotFound) {
 			return gen.DeleteProject404JSONResponse{

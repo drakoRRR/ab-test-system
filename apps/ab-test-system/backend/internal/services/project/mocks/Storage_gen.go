@@ -5,8 +5,9 @@ package mocks
 import (
 	context "context"
 
-	project "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/project"
 	mock "github.com/stretchr/testify/mock"
+
+	project "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/project"
 
 	uuid "github.com/google/uuid"
 )
