@@ -2,11 +2,11 @@ openapi: 3.0.3
 info:
   title: SDK module
   version: 1.0.0
-
 paths:
   /sdk/config:
     get:
-      tags: [sdk]
+      tags:
+        - sdk
       summary: Fetch project config for local evaluation
       operationId: GetSdkConfig
       security:
@@ -19,11 +19,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SDKConfig'
         '401':
-          $ref: './base.yml#/components/responses/Unauthorized'
-
+          $ref: '#/components/responses/Unauthorized'
   /sdk/events:
     post:
-      tags: [sdk]
+      tags:
+        - sdk
       summary: Ingest a batch of events
       operationId: PostSdkEvents
       security:
@@ -38,64 +38,74 @@ paths:
         '202':
           description: Accepted
         '400':
-          $ref: './base.yml#/components/responses/BadRequest'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: './base.yml#/components/responses/Unauthorized'
-
+          $ref: '#/components/responses/Unauthorized'
 components:
   schemas:
     SDKFlagRule:
       type: object
-      required: [type, value]
+      required:
+        - type
+        - value
       properties:
         type:
           type: string
-          enum: [percentage]
+          enum:
+            - percentage
         value:
           type: number
           minimum: 0
           maximum: 100
-
     SDKFlag:
       type: object
-      required: [id, key, enabled, rules]
+      required:
+        - id
+        - key
+        - enabled
+        - rules
       properties:
         id:
           type: string
           format: uuid
         key:
           type: string
-          example: "checkout-button"
+          example: checkout-button
         enabled:
           type: boolean
         rules:
           type: array
           items:
             $ref: '#/components/schemas/SDKFlagRule'
-
     SDKVariant:
       type: object
-      required: [id, key, weight]
+      required:
+        - id
+        - key
+        - weight
       properties:
         id:
           type: string
           format: uuid
         key:
           type: string
-          example: "control"
+          example: control
         weight:
           type: integer
-
     SDKExperiment:
       type: object
-      required: [id, key, trafficPercent, variants]
+      required:
+        - id
+        - key
+        - trafficPercent
+        - variants
       properties:
         id:
           type: string
           format: uuid
         key:
           type: string
-          example: "checkout-btn-experiment"
+          example: checkout-btn-experiment
         trafficPercent:
           type: number
           format: float
@@ -103,10 +113,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SDKVariant'
-
     SDKConfig:
       type: object
-      required: [projectId, flags, experiments]
+      required:
+        - projectId
+        - flags
+        - experiments
       properties:
         projectId:
           type: string
@@ -119,14 +131,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SDKExperiment'
-
     SDKEventType:
       type: string
-      enum: [exposure, conversion]
-
+      enum:
+        - exposure
+        - conversion
     SDKEvent:
       type: object
-      required: [id, userId, experimentId, variantId, type, timestamp]
+      required:
+        - id
+        - userId
+        - experimentId
+        - variantId
+        - type
+        - timestamp
       properties:
         id:
           type: string
@@ -151,10 +169,10 @@ components:
         timestamp:
           type: string
           format: date-time
-
     SDKEventBatch:
       type: object
-      required: [events]
+      required:
+        - events
       properties:
         events:
           type: array
@@ -162,3 +180,29 @@ components:
             $ref: '#/components/schemas/SDKEvent'
           minItems: 1
           maxItems: 1000
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

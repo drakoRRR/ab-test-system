@@ -18,7 +18,7 @@ func (h *Handler) GetSdkConfig(
 		}, nil
 	}
 
-	cfg, err := h.service.GetConfig(ctx, projectID)
+	cfg, err := h.config.GetConfig(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}

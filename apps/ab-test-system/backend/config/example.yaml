@@ -17,3 +17,12 @@ redis:
 kafka:
   brokers:
     - "localhost:9092"
+  producers:
+    events:
+      topic: "ab-test-events"
+  consumers:
+    events:
+      topic: "ab-test-events"
+      group_id: "ab-test-events-consumer"
+      batch_size: 100
+      flush_timeout: 2s

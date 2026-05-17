@@ -39,8 +39,12 @@ packages:
       Service:
   github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/sdk:
     interfaces:
-      Service:
+      ConfigService:
+      EventService:
   github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/sdk:
     interfaces:
       FlagLister:
       ExperimentLister:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event:
+    interfaces:
+      Publisher:

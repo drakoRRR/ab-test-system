@@ -26,7 +26,7 @@ func TestSDKHandler_GetSdkConfig(t *testing.T) {
 			name: "200 returns config with flags and experiments",
 			ctx:  sdkCtx(),
 			setupMock: func(mh *mockedHandler) {
-				mh.svc.EXPECT().
+				mh.config.EXPECT().
 					GetConfig(mock.Anything, fixedProjectID).
 					Return(fixedConfig, nil)
 			},
@@ -48,7 +48,7 @@ func TestSDKHandler_GetSdkConfig(t *testing.T) {
 			name: "200 with empty flags and experiments",
 			ctx:  sdkCtx(),
 			setupMock: func(mh *mockedHandler) {
-				mh.svc.EXPECT().
+				mh.config.EXPECT().
 					GetConfig(mock.Anything, fixedProjectID).
 					Return(domainsdk.Config{ProjectID: fixedProjectID}, nil)
 			},
@@ -73,7 +73,7 @@ func TestSDKHandler_GetSdkConfig(t *testing.T) {
 			name: "service error bubbles up as 500",
 			ctx:  sdkCtx(),
 			setupMock: func(mh *mockedHandler) {
-				mh.svc.EXPECT().
+				mh.config.EXPECT().
 					GetConfig(mock.Anything, fixedProjectID).
 					Return(domainsdk.Config{}, errors.New("db error"))
 			},

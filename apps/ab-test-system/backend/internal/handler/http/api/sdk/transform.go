@@ -1,6 +1,9 @@
 package sdk
 
 import (
+	"github.com/google/uuid"
+
+	domainevent "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/event"
 	domainexp "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/experiment"
 	domainflag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
 	domainsdk "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/sdk"
@@ -68,4 +71,36 @@ func toAPIVariants(variants []domainexp.Variant) []sdkgen.SDKVariant {
 	return out
 }
 
+func toDomainEvents(projectID uuid.UUID, batch []sdkgen.SDKEvent) []domainevent.Event {
+	out := make([]domainevent.Event, len(batch))
+	for i, e := range batch {
+		out[i] = domainevent.Event{
+			ID:           e.Id,
+			ProjectID:    projectID,
+			UserID:       e.UserId,
+			ExperimentID: e.ExperimentId,
+			VariantID:    e.VariantId,
+			Type:         domainevent.Type(e.Type),
+			Name:         derefString(e.Name),
+			Value:        float64(derefFloat32(e.Value)),
+			Timestamp:    e.Timestamp,
+		}
+	}
+	return out
+}
+
 func ptr[T any](v T) *T { return &v }
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func derefFloat32(f *float32) float32 {
+	if f == nil {
+		return 0
+	}
+	return *f
+}

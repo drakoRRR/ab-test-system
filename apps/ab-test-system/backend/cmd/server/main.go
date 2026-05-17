@@ -16,6 +16,7 @@ import (
 
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/gcp"
 	gcpauth "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/gcp/auth"
+	infrakafka "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/kafka"
 	infrapostgres "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres"
 	infraredis "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/redis"
 
@@ -37,6 +38,7 @@ import (
 	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
 	apikeyservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/apikey"
+	eventservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event"
 	experimentservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/experiment"
 	flagservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/flag"
 	projectservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project"
@@ -51,6 +53,7 @@ type Config struct {
 	GCP        gcp.Config           `yaml:"gcp_auth"`
 	Database   infrapostgres.Config `yaml:"database"`
 	Redis      infraredis.Config    `yaml:"redis"`
+	Kafka      infrakafka.Config    `yaml:"kafka"`
 }
 
 var configPath = flag.String("config", "./config/example.yaml", "Path to config file")
@@ -117,8 +120,16 @@ func main() {
 	experimentSvc := experimentservice.NewService(cachedExperimentRepo)
 	experimentH := experimenthandler.NewHandler(experimentSvc)
 
+	producers := infrakafka.NewProducerRegistry(cfg.Kafka.Brokers, cfg.Kafka.Producers)
+	defer func() {
+		if err := producers.Close(); err != nil {
+			log.Error().Err(err).Msg("closing kafka producers")
+		}
+	}()
+
 	sdkSvc := sdkservice.NewService(cachedFlagRepo, cachedExperimentRepo)
-	sdkH := sdkhandler.NewHandler(sdkSvc)
+	eventSvc := eventservice.NewService(producers.Get("events"))
+	sdkH := sdkhandler.NewHandler(sdkSvc, eventSvc)
 
 	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH)
 

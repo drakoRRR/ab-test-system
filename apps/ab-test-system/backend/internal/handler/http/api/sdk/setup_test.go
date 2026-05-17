@@ -49,12 +49,18 @@ var fixedConfig = domainsdk.Config{
 
 type mockedHandler struct {
 	*sdkh.Handler
-	svc *mocks.MockService
+	config *mocks.MockConfigService
+	events *mocks.MockEventService
 }
 
 func newMockedHandler(t *testing.T) *mockedHandler {
-	svc := mocks.NewMockService(t)
-	return &mockedHandler{Handler: sdkh.NewHandler(svc), svc: svc}
+	config := mocks.NewMockConfigService(t)
+	events := mocks.NewMockEventService(t)
+	return &mockedHandler{
+		Handler: sdkh.NewHandler(config, events),
+		config:  config,
+		events:  events,
+	}
 }
 
 func sdkCtx() context.Context {

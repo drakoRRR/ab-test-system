@@ -54,11 +54,16 @@ deps:
 build:
 	@echo "Building application..."
 	go build -o bin/server cmd/server/main.go
+	go build -o bin/consumer cmd/consumer/main.go
 
 # ==================== RUN ====================
 .PHONY: run
 run:
-	go run cmd/server/main.go -config=./config/config.example.yaml
+	go run cmd/server/main.go -config=./config/example.yaml
+
+.PHONY: run-consumer
+run-consumer:
+	go run cmd/consumer/main.go -config=./config/example.yaml
 
 # ==================== LINT ====================
 .PHONY: fmt
