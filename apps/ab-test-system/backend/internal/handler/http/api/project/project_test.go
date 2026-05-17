@@ -225,7 +225,11 @@ func TestProjectHandler_UpdateProject(t *testing.T) {
 			setupMock: func(mh *mockedHandler) {
 				withUserOK(mh)
 				mh.projSvc.EXPECT().
-					Update(mock.Anything, fixedOrgID, fixedProjectID, mock.Anything, mock.Anything).
+					Update(mock.Anything, domainproject.UpdateParams{
+						OrgID:     fixedOrgID,
+						ProjectID: fixedProjectID,
+						Name:      ptr("Updated"),
+					}).
 					Return(fixedProject, nil)
 			},
 			assertErr: assert.NoError,
@@ -248,7 +252,7 @@ func TestProjectHandler_UpdateProject(t *testing.T) {
 			setupMock: func(mh *mockedHandler) {
 				withUserOK(mh)
 				mh.projSvc.EXPECT().
-					Update(mock.Anything, fixedOrgID, fixedProjectID, mock.Anything, mock.Anything).
+					Update(mock.Anything, mock.Anything).
 					Return(domainproject.Project{}, domainproject.ErrNotFound)
 			},
 			assertErr: assert.NoError,

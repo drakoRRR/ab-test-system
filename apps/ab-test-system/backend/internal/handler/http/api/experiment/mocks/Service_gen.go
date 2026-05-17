@@ -5,9 +5,8 @@ package mocks
 import (
 	context "context"
 
-	mock "github.com/stretchr/testify/mock"
-
 	experiment "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/experiment"
+	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"
 )
@@ -83,9 +82,9 @@ func (_c *MockService_Complete_Call) RunAndReturn(run func(context.Context, uuid
 	return _c
 }
 
-// Create provides a mock function with given fields: ctx, projectID, flagID, name, description, trafficPercent, variants
-func (_m *MockService) Create(ctx context.Context, projectID uuid.UUID, flagID *uuid.UUID, name string, description string, trafficPercent float64, variants []experiment.Variant) (experiment.Experiment, error) {
-	ret := _m.Called(ctx, projectID, flagID, name, description, trafficPercent, variants)
+// Create provides a mock function with given fields: ctx, p
+func (_m *MockService) Create(ctx context.Context, p experiment.CreateParams) (experiment.Experiment, error) {
+	ret := _m.Called(ctx, p)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -93,17 +92,17 @@ func (_m *MockService) Create(ctx context.Context, projectID uuid.UUID, flagID *
 
 	var r0 experiment.Experiment
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *uuid.UUID, string, string, float64, []experiment.Variant) (experiment.Experiment, error)); ok {
-		return rf(ctx, projectID, flagID, name, description, trafficPercent, variants)
+	if rf, ok := ret.Get(0).(func(context.Context, experiment.CreateParams) (experiment.Experiment, error)); ok {
+		return rf(ctx, p)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *uuid.UUID, string, string, float64, []experiment.Variant) experiment.Experiment); ok {
-		r0 = rf(ctx, projectID, flagID, name, description, trafficPercent, variants)
+	if rf, ok := ret.Get(0).(func(context.Context, experiment.CreateParams) experiment.Experiment); ok {
+		r0 = rf(ctx, p)
 	} else {
 		r0 = ret.Get(0).(experiment.Experiment)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *uuid.UUID, string, string, float64, []experiment.Variant) error); ok {
-		r1 = rf(ctx, projectID, flagID, name, description, trafficPercent, variants)
+	if rf, ok := ret.Get(1).(func(context.Context, experiment.CreateParams) error); ok {
+		r1 = rf(ctx, p)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -118,19 +117,14 @@ type MockService_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - projectID uuid.UUID
-//   - flagID *uuid.UUID
-//   - name string
-//   - description string
-//   - trafficPercent float64
-//   - variants []experiment.Variant
-func (_e *MockService_Expecter) Create(ctx interface{}, projectID interface{}, flagID interface{}, name interface{}, description interface{}, trafficPercent interface{}, variants interface{}) *MockService_Create_Call {
-	return &MockService_Create_Call{Call: _e.mock.On("Create", ctx, projectID, flagID, name, description, trafficPercent, variants)}
+//   - p experiment.CreateParams
+func (_e *MockService_Expecter) Create(ctx interface{}, p interface{}) *MockService_Create_Call {
+	return &MockService_Create_Call{Call: _e.mock.On("Create", ctx, p)}
 }
 
-func (_c *MockService_Create_Call) Run(run func(ctx context.Context, projectID uuid.UUID, flagID *uuid.UUID, name string, description string, trafficPercent float64, variants []experiment.Variant)) *MockService_Create_Call {
+func (_c *MockService_Create_Call) Run(run func(ctx context.Context, p experiment.CreateParams)) *MockService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(*uuid.UUID), args[3].(string), args[4].(string), args[5].(float64), args[6].([]experiment.Variant))
+		run(args[0].(context.Context), args[1].(experiment.CreateParams))
 	})
 	return _c
 }
@@ -140,7 +134,7 @@ func (_c *MockService_Create_Call) Return(_a0 experiment.Experiment, _a1 error) 
 	return _c
 }
 
-func (_c *MockService_Create_Call) RunAndReturn(run func(context.Context, uuid.UUID, *uuid.UUID, string, string, float64, []experiment.Variant) (experiment.Experiment, error)) *MockService_Create_Call {
+func (_c *MockService_Create_Call) RunAndReturn(run func(context.Context, experiment.CreateParams) (experiment.Experiment, error)) *MockService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -484,9 +478,9 @@ func (_c *MockService_Start_Call) RunAndReturn(run func(context.Context, uuid.UU
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, projectID, experimentID, name, description, trafficPercent
-func (_m *MockService) Update(ctx context.Context, projectID uuid.UUID, experimentID uuid.UUID, name *string, description *string, trafficPercent *float64) (experiment.Experiment, error) {
-	ret := _m.Called(ctx, projectID, experimentID, name, description, trafficPercent)
+// Update provides a mock function with given fields: ctx, p
+func (_m *MockService) Update(ctx context.Context, p experiment.UpdateParams) (experiment.Experiment, error) {
+	ret := _m.Called(ctx, p)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -494,17 +488,17 @@ func (_m *MockService) Update(ctx context.Context, projectID uuid.UUID, experime
 
 	var r0 experiment.Experiment
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *string, *string, *float64) (experiment.Experiment, error)); ok {
-		return rf(ctx, projectID, experimentID, name, description, trafficPercent)
+	if rf, ok := ret.Get(0).(func(context.Context, experiment.UpdateParams) (experiment.Experiment, error)); ok {
+		return rf(ctx, p)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *string, *string, *float64) experiment.Experiment); ok {
-		r0 = rf(ctx, projectID, experimentID, name, description, trafficPercent)
+	if rf, ok := ret.Get(0).(func(context.Context, experiment.UpdateParams) experiment.Experiment); ok {
+		r0 = rf(ctx, p)
 	} else {
 		r0 = ret.Get(0).(experiment.Experiment)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, *string, *string, *float64) error); ok {
-		r1 = rf(ctx, projectID, experimentID, name, description, trafficPercent)
+	if rf, ok := ret.Get(1).(func(context.Context, experiment.UpdateParams) error); ok {
+		r1 = rf(ctx, p)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -519,18 +513,14 @@ type MockService_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - projectID uuid.UUID
-//   - experimentID uuid.UUID
-//   - name *string
-//   - description *string
-//   - trafficPercent *float64
-func (_e *MockService_Expecter) Update(ctx interface{}, projectID interface{}, experimentID interface{}, name interface{}, description interface{}, trafficPercent interface{}) *MockService_Update_Call {
-	return &MockService_Update_Call{Call: _e.mock.On("Update", ctx, projectID, experimentID, name, description, trafficPercent)}
+//   - p experiment.UpdateParams
+func (_e *MockService_Expecter) Update(ctx interface{}, p interface{}) *MockService_Update_Call {
+	return &MockService_Update_Call{Call: _e.mock.On("Update", ctx, p)}
 }
 
-func (_c *MockService_Update_Call) Run(run func(ctx context.Context, projectID uuid.UUID, experimentID uuid.UUID, name *string, description *string, trafficPercent *float64)) *MockService_Update_Call {
+func (_c *MockService_Update_Call) Run(run func(ctx context.Context, p experiment.UpdateParams)) *MockService_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(*string), args[4].(*string), args[5].(*float64))
+		run(args[0].(context.Context), args[1].(experiment.UpdateParams))
 	})
 	return _c
 }
@@ -540,7 +530,7 @@ func (_c *MockService_Update_Call) Return(_a0 experiment.Experiment, _a1 error) 
 	return _c
 }
 
-func (_c *MockService_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, *string, *string, *float64) (experiment.Experiment, error)) *MockService_Update_Call {
+func (_c *MockService_Update_Call) RunAndReturn(run func(context.Context, experiment.UpdateParams) (experiment.Experiment, error)) *MockService_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

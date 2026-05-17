@@ -37,7 +37,11 @@ func TestUserHandler_CreateUser(t *testing.T) {
 			body: validBody,
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					CreateOrUpdate(mock.Anything, "firebase-uid", string(validBody.Email), validBody.Name, mock.Anything).
+					CreateOrUpdate(mock.Anything, domain.UpsertParams{
+						FirebaseUID: "firebase-uid",
+						Email:       "user@example.com",
+						Name:        "Test User",
+					}).
 					Return(fixedUser, nil)
 			},
 			assertErr: assert.NoError,
@@ -71,7 +75,7 @@ func TestUserHandler_CreateUser(t *testing.T) {
 			body: validBody,
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					CreateOrUpdate(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					CreateOrUpdate(mock.Anything, mock.Anything).
 					Return(domain.User{}, errors.New("db error"))
 			},
 			assertErr: assert.Error,

@@ -60,3 +60,20 @@ func (e *Experiment) CanTransitionTo(next Status) bool {
 
 	return targets[next]
 }
+
+type CreateParams struct {
+	ProjectID      uuid.UUID
+	FlagID         *uuid.UUID
+	Name           string
+	Description    string
+	TrafficPercent float64
+	Variants       []Variant
+}
+
+type UpdateParams struct {
+	ProjectID      uuid.UUID
+	ExperimentID   uuid.UUID
+	Name           *string
+	Description    *string
+	TrafficPercent *float64
+}

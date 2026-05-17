@@ -59,22 +59,18 @@ func (s *Service) GetByID(ctx context.Context, orgID, projectID uuid.UUID) (doma
 	return p, nil
 }
 
-func (s *Service) Update(
-	ctx context.Context,
-	orgID, projectID uuid.UUID,
-	name, description *string,
-) (domain.Project, error) {
-	p, err := s.storage.GetByID(ctx, projectID, orgID)
+func (s *Service) Update(ctx context.Context, params domain.UpdateParams) (domain.Project, error) {
+	p, err := s.storage.GetByID(ctx, params.ProjectID, params.OrgID)
 	if err != nil {
 		return domain.Project{}, fmt.Errorf("project.Service.Update: %w", err)
 	}
 
-	if name != nil {
-		p.Name = *name
+	if params.Name != nil {
+		p.Name = *params.Name
 	}
 
-	if description != nil {
-		p.Description = *description
+	if params.Description != nil {
+		p.Description = *params.Description
 	}
 
 	updated, err := s.storage.Update(ctx, p)

@@ -1,7 +1,6 @@
 package experiment
 
 import (
-	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 
 	domain "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/experiment"
@@ -49,7 +48,6 @@ func toDomainVariants(variants []gen.CreateVariantRequest) []domain.Variant {
 	out := make([]domain.Variant, len(variants))
 	for i, v := range variants {
 		out[i] = domain.Variant{
-			ID:     uuid.New(),
 			Key:    v.Key,
 			Name:   v.Name,
 			Weight: v.Weight,

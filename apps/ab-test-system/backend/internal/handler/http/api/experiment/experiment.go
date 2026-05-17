@@ -33,15 +33,14 @@ func (h *ExperimentHandler) CreateExperiment(
 		flagID = &id
 	}
 
-	exp, err := h.service.Create(
-		ctx,
-		uuid.UUID(request.ProjectId),
-		flagID,
-		request.Body.Name,
-		derefString(request.Body.Description),
-		float64(request.Body.TrafficPercent),
-		toDomainVariants(request.Body.Variants),
-	)
+	exp, err := h.service.Create(ctx, domain.CreateParams{
+		ProjectID:      uuid.UUID(request.ProjectId),
+		FlagID:         flagID,
+		Name:           request.Body.Name,
+		Description:    derefString(request.Body.Description),
+		TrafficPercent: float64(request.Body.TrafficPercent),
+		Variants:       toDomainVariants(request.Body.Variants),
+	})
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			return gen.CreateExperiment409JSONResponse{
@@ -124,14 +123,13 @@ func (h *ExperimentHandler) UpdateExperiment(
 		trafficPercent = &v
 	}
 
-	exp, err := h.service.Update(
-		ctx,
-		uuid.UUID(request.ProjectId),
-		uuid.UUID(request.ExperimentId),
-		request.Body.Name,
-		request.Body.Description,
-		trafficPercent,
-	)
+	exp, err := h.service.Update(ctx, domain.UpdateParams{
+		ProjectID:      uuid.UUID(request.ProjectId),
+		ExperimentID:   uuid.UUID(request.ExperimentId),
+		Name:           request.Body.Name,
+		Description:    request.Body.Description,
+		TrafficPercent: trafficPercent,
+	})
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrNotFound):

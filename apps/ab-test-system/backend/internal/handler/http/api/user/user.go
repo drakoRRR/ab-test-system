@@ -26,7 +26,11 @@ func (h *UserHandler) CreateUser(
 		}, nil
 	}
 
-	u, err := h.service.CreateOrUpdate(ctx, uid, string(request.Body.Email), request.Body.Name, nil)
+	u, err := h.service.CreateOrUpdate(ctx, domain.UpsertParams{
+		FirebaseUID: uid,
+		Email:       string(request.Body.Email),
+		Name:        request.Body.Name,
+	})
 	if err != nil {
 		return nil, err
 	}

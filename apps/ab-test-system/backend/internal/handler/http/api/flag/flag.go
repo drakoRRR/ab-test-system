@@ -110,14 +110,13 @@ func (h *FlagHandler) UpdateFlag(
 		rules = &r
 	}
 
-	f, err := h.service.Update(
-		ctx,
-		uuid.UUID(request.ProjectId),
-		request.FlagKey,
-		request.Body.Name,
-		request.Body.Enabled,
-		rules,
-	)
+	f, err := h.service.Update(ctx, domain.UpdateParams{
+		ProjectID: uuid.UUID(request.ProjectId),
+		Key:       request.FlagKey,
+		Name:      request.Body.Name,
+		Enabled:   request.Body.Enabled,
+		Rules:     rules,
+	})
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return gen.UpdateFlag404JSONResponse{

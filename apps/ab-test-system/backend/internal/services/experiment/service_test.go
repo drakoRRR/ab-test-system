@@ -62,7 +62,12 @@ func TestService_Create(t *testing.T) {
 			ms := newMockedService(t)
 			tc.setupMock(ms)
 
-			got, err := ms.Create(context.Background(), projectID, nil, "btn-color", "", 50, variants)
+			got, err := ms.Create(context.Background(), domain.CreateParams{
+				ProjectID:      projectID,
+				Name:           "btn-color",
+				TrafficPercent: 50,
+				Variants:       variants,
+			})
 
 			tc.assertErr(t, err)
 			if err == nil && tc.assertRes != nil {
@@ -159,14 +164,13 @@ func TestService_Update(t *testing.T) {
 			ms := newMockedService(t)
 			tc.setupMock(ms)
 
-			got, err := ms.Update(
-				context.Background(),
-				projectID,
-				experimentID,
-				tc.newName,
-				tc.newDescription,
-				tc.newTraffic,
-			)
+			got, err := ms.Update(context.Background(), domain.UpdateParams{
+				ProjectID:      projectID,
+				ExperimentID:   experimentID,
+				Name:           tc.newName,
+				Description:    tc.newDescription,
+				TrafficPercent: tc.newTraffic,
+			})
 
 			tc.assertErr(t, err)
 			if err == nil && tc.assertRes != nil {

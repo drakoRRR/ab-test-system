@@ -51,7 +51,11 @@ func TestService_CreateOrUpdate(t *testing.T) {
 			ms := newMockedService(t)
 			tc.setupMock(ms)
 
-			got, err := ms.CreateOrUpdate(context.Background(), "firebase-uid", "user@example.com", "Test User", nil)
+			got, err := ms.CreateOrUpdate(context.Background(), domain.UpsertParams{
+				FirebaseUID: "firebase-uid",
+				Email:       "user@example.com",
+				Name:        "Test User",
+			})
 
 			tc.assertErr(t, err)
 			if err == nil && tc.assertRes != nil {

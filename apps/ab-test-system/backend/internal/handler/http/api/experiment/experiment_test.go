@@ -51,7 +51,15 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 			body: validBody,
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Create(mock.Anything, fixedProjectID, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Create(mock.Anything, domain.CreateParams{
+						ProjectID:      fixedProjectID,
+						Name:           "Checkout Button Experiment",
+						TrafficPercent: 50,
+						Variants: []domain.Variant{
+							{Key: "control", Name: "Control", Weight: 50},
+							{Key: "treatment", Name: "Treatment", Weight: 50},
+						},
+					}).
 					Return(fixedExperiment, nil)
 			},
 			assertErr: assert.NoError,
@@ -85,7 +93,7 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 			body: validBody,
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Create(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Create(mock.Anything, mock.Anything).
 					Return(domain.Experiment{}, domain.ErrConflict)
 			},
 			assertErr: assert.NoError,
@@ -99,7 +107,7 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 			body: validBody,
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Create(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Create(mock.Anything, mock.Anything).
 					Return(domain.Experiment{}, errors.New("db error"))
 			},
 			assertErr: assert.Error,
@@ -264,7 +272,11 @@ func TestExperimentHandler_UpdateExperiment(t *testing.T) {
 			body: &gen.UpdateExperimentJSONRequestBody{Name: ptr("New Name")},
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Update(mock.Anything, fixedProjectID, fixedExperimentID, ptr("New Name"), (*string)(nil), (*float64)(nil)).
+					Update(mock.Anything, domain.UpdateParams{
+						ProjectID:    fixedProjectID,
+						ExperimentID: fixedExperimentID,
+						Name:         ptr("New Name"),
+					}).
 					Return(fixedExperiment, nil)
 			},
 			assertErr: assert.NoError,
@@ -298,7 +310,7 @@ func TestExperimentHandler_UpdateExperiment(t *testing.T) {
 			body: &gen.UpdateExperimentJSONRequestBody{Name: ptr("X")},
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Update(mock.Anything, mock.Anything).
 					Return(domain.Experiment{}, domain.ErrNotFound)
 			},
 			assertErr: assert.NoError,
@@ -312,7 +324,7 @@ func TestExperimentHandler_UpdateExperiment(t *testing.T) {
 			body: &gen.UpdateExperimentJSONRequestBody{Name: ptr("X")},
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Update(mock.Anything, mock.Anything).
 					Return(domain.Experiment{}, domain.ErrNotDraft)
 			},
 			assertErr: assert.NoError,

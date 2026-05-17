@@ -61,29 +61,22 @@ func (s *Service) GetByKey(ctx context.Context, projectID uuid.UUID, key string)
 	return f, nil
 }
 
-func (s *Service) Update(
-	ctx context.Context,
-	projectID uuid.UUID,
-	key string,
-	name *string,
-	enabled *bool,
-	rules *[]domain.Rule,
-) (domain.Flag, error) {
-	f, err := s.storage.GetByKey(ctx, projectID, key)
+func (s *Service) Update(ctx context.Context, p domain.UpdateParams) (domain.Flag, error) {
+	f, err := s.storage.GetByKey(ctx, p.ProjectID, p.Key)
 	if err != nil {
 		return domain.Flag{}, fmt.Errorf("flag.Service.Update: %w", err)
 	}
 
-	if name != nil {
-		f.Name = *name
+	if p.Name != nil {
+		f.Name = *p.Name
 	}
 
-	if enabled != nil {
-		f.Enabled = *enabled
+	if p.Enabled != nil {
+		f.Enabled = *p.Enabled
 	}
 
-	if rules != nil {
-		f.Rules = *rules
+	if p.Rules != nil {
+		f.Rules = *p.Rules
 	}
 
 	updated, err := s.storage.Update(ctx, f)

@@ -17,7 +17,7 @@ type ProjectService interface {
 	Create(ctx context.Context, orgID uuid.UUID, name, description string) (domainproject.Project, error)
 	List(ctx context.Context, orgID uuid.UUID) ([]domainproject.Project, error)
 	GetByID(ctx context.Context, orgID, projectID uuid.UUID) (domainproject.Project, error)
-	Update(ctx context.Context, orgID, projectID uuid.UUID, name, description *string) (domainproject.Project, error)
+	Update(ctx context.Context, p domainproject.UpdateParams) (domainproject.Project, error)
 	Delete(ctx context.Context, orgID, projectID uuid.UUID) error
 }
 

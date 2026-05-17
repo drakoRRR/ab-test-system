@@ -117,7 +117,12 @@ func (h *ProjectHandler) UpdateProject(
 		return gen.UpdateProject401JSONResponse{UnauthorizedJSONResponse: *unauthorized}, nil
 	}
 
-	p, err := h.projects.Update(ctx, orgID, uuid.UUID(request.ProjectId), request.Body.Name, request.Body.Description)
+	p, err := h.projects.Update(ctx, domainproject.UpdateParams{
+		OrgID:       orgID,
+		ProjectID:   uuid.UUID(request.ProjectId),
+		Name:        request.Body.Name,
+		Description: request.Body.Description,
+	})
 	if err != nil {
 		if errors.Is(err, domainproject.ErrNotFound) {
 			return gen.UpdateProject404JSONResponse{

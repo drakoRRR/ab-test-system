@@ -22,17 +22,13 @@ func NewService(storage Storage) *Service {
 	return &Service{storage: storage}
 }
 
-func (s *Service) CreateOrUpdate(
-	ctx context.Context,
-	firebaseUID, email, name string,
-	photoURL *string,
-) (domain.User, error) {
+func (s *Service) CreateOrUpdate(ctx context.Context, p domain.UpsertParams) (domain.User, error) {
 	u := domain.User{
 		ID:          uuid.New(),
-		FirebaseUID: firebaseUID,
-		Email:       email,
-		Name:        name,
-		PhotoURL:    photoURL,
+		FirebaseUID: p.FirebaseUID,
+		Email:       p.Email,
+		Name:        p.Name,
+		PhotoURL:    p.PhotoURL,
 		Role:        domain.RoleMember,
 	}
 

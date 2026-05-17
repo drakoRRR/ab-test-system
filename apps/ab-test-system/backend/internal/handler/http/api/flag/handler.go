@@ -12,14 +12,7 @@ type Service interface {
 	Create(ctx context.Context, projectID uuid.UUID, key, name string) (domain.Flag, error)
 	List(ctx context.Context, projectID uuid.UUID) ([]domain.Flag, error)
 	GetByKey(ctx context.Context, projectID uuid.UUID, key string) (domain.Flag, error)
-	Update(
-		ctx context.Context,
-		projectID uuid.UUID,
-		key string,
-		name *string,
-		enabled *bool,
-		rules *[]domain.Rule,
-	) (domain.Flag, error)
+	Update(ctx context.Context, p domain.UpdateParams) (domain.Flag, error)
 	Delete(ctx context.Context, projectID uuid.UUID, key string) error
 }
 

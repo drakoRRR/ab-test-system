@@ -17,3 +17,10 @@ type Project struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type UpdateParams struct {
+	OrgID       uuid.UUID
+	ProjectID   uuid.UUID
+	Name        *string
+	Description *string
+}

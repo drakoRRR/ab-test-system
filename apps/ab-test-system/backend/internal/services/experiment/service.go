@@ -26,22 +26,21 @@ func NewService(storage Storage) *Service {
 	return &Service{storage: storage}
 }
 
-func (s *Service) Create(
-	ctx context.Context,
-	projectID uuid.UUID,
-	flagID *uuid.UUID,
-	name, description string,
-	trafficPercent float64,
-	variants []domain.Variant,
-) (domain.Experiment, error) {
+func (s *Service) Create(ctx context.Context, p domain.CreateParams) (domain.Experiment, error) {
+	variants := make([]domain.Variant, len(p.Variants))
+	for i, v := range p.Variants {
+		v.ID = uuid.New()
+		variants[i] = v
+	}
+
 	exp := domain.Experiment{
 		ID:             uuid.New(),
-		ProjectID:      projectID,
-		FlagID:         flagID,
-		Name:           name,
-		Description:    description,
+		ProjectID:      p.ProjectID,
+		FlagID:         p.FlagID,
+		Name:           p.Name,
+		Description:    p.Description,
 		Status:         domain.StatusDraft,
-		TrafficPercent: trafficPercent,
+		TrafficPercent: p.TrafficPercent,
 		Variants:       variants,
 	}
 
@@ -71,14 +70,8 @@ func (s *Service) GetByID(ctx context.Context, projectID, experimentID uuid.UUID
 	return exp, nil
 }
 
-func (s *Service) Update(
-	ctx context.Context,
-	projectID, experimentID uuid.UUID,
-	name *string,
-	description *string,
-	trafficPercent *float64,
-) (domain.Experiment, error) {
-	exp, err := s.storage.GetByID(ctx, projectID, experimentID)
+func (s *Service) Update(ctx context.Context, p domain.UpdateParams) (domain.Experiment, error) {
+	exp, err := s.storage.GetByID(ctx, p.ProjectID, p.ExperimentID)
 	if err != nil {
 		return domain.Experiment{}, fmt.Errorf("experiment.Service.Update: %w", err)
 	}
@@ -87,16 +80,16 @@ func (s *Service) Update(
 		return domain.Experiment{}, fmt.Errorf("experiment.Service.Update: %w", domain.ErrNotDraft)
 	}
 
-	if name != nil {
-		exp.Name = *name
+	if p.Name != nil {
+		exp.Name = *p.Name
 	}
 
-	if description != nil {
-		exp.Description = *description
+	if p.Description != nil {
+		exp.Description = *p.Description
 	}
 
-	if trafficPercent != nil {
-		exp.TrafficPercent = *trafficPercent
+	if p.TrafficPercent != nil {
+		exp.TrafficPercent = *p.TrafficPercent
 	}
 
 	updated, err := s.storage.Update(ctx, exp)

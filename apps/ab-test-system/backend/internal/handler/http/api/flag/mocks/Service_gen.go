@@ -5,9 +5,8 @@ package mocks
 import (
 	context "context"
 
-	mock "github.com/stretchr/testify/mock"
-
 	flag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/flag"
+	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"
 )
@@ -249,9 +248,9 @@ func (_c *MockService_List_Call) RunAndReturn(run func(context.Context, uuid.UUI
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, projectID, key, name, enabled, rules
-func (_m *MockService) Update(ctx context.Context, projectID uuid.UUID, key string, name *string, enabled *bool, rules *[]flag.Rule) (flag.Flag, error) {
-	ret := _m.Called(ctx, projectID, key, name, enabled, rules)
+// Update provides a mock function with given fields: ctx, p
+func (_m *MockService) Update(ctx context.Context, p flag.UpdateParams) (flag.Flag, error) {
+	ret := _m.Called(ctx, p)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -259,17 +258,17 @@ func (_m *MockService) Update(ctx context.Context, projectID uuid.UUID, key stri
 
 	var r0 flag.Flag
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, *string, *bool, *[]flag.Rule) (flag.Flag, error)); ok {
-		return rf(ctx, projectID, key, name, enabled, rules)
+	if rf, ok := ret.Get(0).(func(context.Context, flag.UpdateParams) (flag.Flag, error)); ok {
+		return rf(ctx, p)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, *string, *bool, *[]flag.Rule) flag.Flag); ok {
-		r0 = rf(ctx, projectID, key, name, enabled, rules)
+	if rf, ok := ret.Get(0).(func(context.Context, flag.UpdateParams) flag.Flag); ok {
+		r0 = rf(ctx, p)
 	} else {
 		r0 = ret.Get(0).(flag.Flag)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, string, *string, *bool, *[]flag.Rule) error); ok {
-		r1 = rf(ctx, projectID, key, name, enabled, rules)
+	if rf, ok := ret.Get(1).(func(context.Context, flag.UpdateParams) error); ok {
+		r1 = rf(ctx, p)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -284,18 +283,14 @@ type MockService_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - projectID uuid.UUID
-//   - key string
-//   - name *string
-//   - enabled *bool
-//   - rules *[]flag.Rule
-func (_e *MockService_Expecter) Update(ctx interface{}, projectID interface{}, key interface{}, name interface{}, enabled interface{}, rules interface{}) *MockService_Update_Call {
-	return &MockService_Update_Call{Call: _e.mock.On("Update", ctx, projectID, key, name, enabled, rules)}
+//   - p flag.UpdateParams
+func (_e *MockService_Expecter) Update(ctx interface{}, p interface{}) *MockService_Update_Call {
+	return &MockService_Update_Call{Call: _e.mock.On("Update", ctx, p)}
 }
 
-func (_c *MockService_Update_Call) Run(run func(ctx context.Context, projectID uuid.UUID, key string, name *string, enabled *bool, rules *[]flag.Rule)) *MockService_Update_Call {
+func (_c *MockService_Update_Call) Run(run func(ctx context.Context, p flag.UpdateParams)) *MockService_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(string), args[3].(*string), args[4].(*bool), args[5].(*[]flag.Rule))
+		run(args[0].(context.Context), args[1].(flag.UpdateParams))
 	})
 	return _c
 }
@@ -305,7 +300,7 @@ func (_c *MockService_Update_Call) Return(_a0 flag.Flag, _a1 error) *MockService
 	return _c
 }
 
-func (_c *MockService_Update_Call) RunAndReturn(run func(context.Context, uuid.UUID, string, *string, *bool, *[]flag.Rule) (flag.Flag, error)) *MockService_Update_Call {
+func (_c *MockService_Update_Call) RunAndReturn(run func(context.Context, flag.UpdateParams) (flag.Flag, error)) *MockService_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

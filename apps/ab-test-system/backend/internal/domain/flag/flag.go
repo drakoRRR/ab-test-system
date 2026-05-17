@@ -27,3 +27,11 @@ type Rule struct {
 	Type  string
 	Value float64
 }
+
+type UpdateParams struct {
+	ProjectID uuid.UUID
+	Key       string
+	Name      *string
+	Enabled   *bool
+	Rules     *[]Rule
+}

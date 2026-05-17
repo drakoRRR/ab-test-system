@@ -162,7 +162,13 @@ func TestService_Update(t *testing.T) {
 			ms := newMockedService(t)
 			tc.setupMock(ms)
 
-			got, err := ms.Update(context.Background(), projectID, "checkout-button", tc.newName, tc.enabled, tc.rules)
+			got, err := ms.Update(context.Background(), domain.UpdateParams{
+				ProjectID: projectID,
+				Key:       "checkout-button",
+				Name:      tc.newName,
+				Enabled:   tc.enabled,
+				Rules:     tc.rules,
+			})
 
 			tc.assertErr(t, err)
 			if err == nil && tc.assertRes != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type Service interface {
-	CreateOrUpdate(ctx context.Context, firebaseUID, email, name string, photoURL *string) (domain.User, error)
+	CreateOrUpdate(ctx context.Context, p domain.UpsertParams) (domain.User, error)
 	GetCurrentUser(ctx context.Context, firebaseUID string) (domain.User, error)
 }
 

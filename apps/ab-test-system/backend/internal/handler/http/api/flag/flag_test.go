@@ -253,7 +253,11 @@ func TestFlagHandler_UpdateFlag(t *testing.T) {
 			body: &gen.UpdateFlagJSONRequestBody{Enabled: ptr(true)},
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Update(mock.Anything, fixedProjectID, "checkout-button", (*string)(nil), ptr(true), (*[]domain.Rule)(nil)).
+					Update(mock.Anything, domain.UpdateParams{
+						ProjectID: fixedProjectID,
+						Key:       "checkout-button",
+						Enabled:   ptr(true),
+					}).
 					Return(fixedFlag, nil)
 			},
 			assertErr: assert.NoError,
@@ -287,7 +291,7 @@ func TestFlagHandler_UpdateFlag(t *testing.T) {
 			body: &gen.UpdateFlagJSONRequestBody{Name: ptr("New Name")},
 			setupMock: func(mh *mockedHandler) {
 				mh.svc.EXPECT().
-					Update(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Update(mock.Anything, mock.Anything).
 					Return(domain.Flag{}, domain.ErrNotFound)
 			},
 			assertErr: assert.NoError,

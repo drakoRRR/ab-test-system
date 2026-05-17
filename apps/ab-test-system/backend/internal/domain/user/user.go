@@ -31,3 +31,10 @@ type User struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type UpsertParams struct {
+	FirebaseUID string
+	Email       string
+	Name        string
+	PhotoURL    *string
+}
