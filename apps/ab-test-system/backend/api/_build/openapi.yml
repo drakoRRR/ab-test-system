@@ -28,6 +28,8 @@ tags:
     x-displayName: flags
   - name: experiments
     x-displayName: experiments
+  - name: analytics
+    x-displayName: analytics
 paths:
   /users:
     post:
@@ -575,6 +577,28 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+  /projects/{projectId}/experiments/{experimentId}/analytics:
+    parameters:
+      - $ref: '#/components/parameters/ProjectIdParam'
+      - $ref: '#/components/parameters/ExperimentIdParam'
+    get:
+      tags:
+        - analytics
+      summary: Get statistical analysis for an experiment
+      operationId: GetExperimentAnalytics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentAnalytics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     BearerAuth:
@@ -1011,6 +1035,92 @@ components:
           format: float
           minimum: 0
           maximum: 100
+    VariantAnalytics:
+      type: object
+      required:
+        - variantId
+        - variantKey
+        - variantName
+        - exposures
+        - conversions
+        - conversionRate
+        - isControl
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        variantKey:
+          type: string
+          example: control
+        variantName:
+          type: string
+          example: Control
+        exposures:
+          type: integer
+          format: int64
+          example: 1024
+        conversions:
+          type: integer
+          format: int64
+          example: 312
+        conversionRate:
+          type: number
+          format: double
+          example: 0.3047
+        isControl:
+          type: boolean
+        uplift:
+          type: number
+          format: double
+          nullable: true
+          description: Relative uplift vs control in percentage points
+          example: 4.2
+        pValue:
+          type: number
+          format: double
+          nullable: true
+          example: 0.031
+        ciLow:
+          type: number
+          format: double
+          nullable: true
+          description: >-
+            Lower bound of 95% confidence interval for (treatment - control)
+            conversion rate
+          example: -0.005
+        ciHigh:
+          type: number
+          format: double
+          nullable: true
+          description: Upper bound of 95% confidence interval
+          example: 0.089
+        significant:
+          type: boolean
+          nullable: true
+          description: True when p-value < 0.05
+    ExperimentAnalytics:
+      type: object
+      required:
+        - experimentId
+        - totalExposures
+        - totalConversions
+        - variants
+      properties:
+        experimentId:
+          type: string
+          format: uuid
+        totalExposures:
+          type: integer
+          format: int64
+          example: 2048
+        totalConversions:
+          type: integer
+          format: int64
+          example: 624
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantAnalytics'
   parameters:
     ProjectIdParam:
       name: projectId

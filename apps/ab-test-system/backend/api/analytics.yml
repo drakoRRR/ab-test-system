@@ -1,0 +1,105 @@
+openapi: 3.0.3
+info:
+  title: Analytics module
+  version: 1.0.0
+
+paths:
+  /projects/{projectId}/experiments/{experimentId}/analytics:
+    parameters:
+      - $ref: './base.yml#/components/parameters/ProjectIdParam'
+      - $ref: './experiments.yml#/components/parameters/ExperimentIdParam'
+
+    get:
+      tags: [analytics]
+      summary: Get statistical analysis for an experiment
+      operationId: GetExperimentAnalytics
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Experiment analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentAnalytics'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './base.yml#/components/responses/NotFound'
+
+components:
+  schemas:
+    VariantAnalytics:
+      type: object
+      required: [variantId, variantKey, variantName, exposures, conversions, conversionRate, isControl]
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        variantKey:
+          type: string
+          example: "control"
+        variantName:
+          type: string
+          example: "Control"
+        exposures:
+          type: integer
+          format: int64
+          example: 1024
+        conversions:
+          type: integer
+          format: int64
+          example: 312
+        conversionRate:
+          type: number
+          format: double
+          example: 0.3047
+        isControl:
+          type: boolean
+        uplift:
+          type: number
+          format: double
+          nullable: true
+          description: Relative uplift vs control in percentage points
+          example: 4.2
+        pValue:
+          type: number
+          format: double
+          nullable: true
+          example: 0.031
+        ciLow:
+          type: number
+          format: double
+          nullable: true
+          description: Lower bound of 95% confidence interval for (treatment - control) conversion rate
+          example: -0.005
+        ciHigh:
+          type: number
+          format: double
+          nullable: true
+          description: Upper bound of 95% confidence interval
+          example: 0.089
+        significant:
+          type: boolean
+          nullable: true
+          description: True when p-value < 0.05
+
+    ExperimentAnalytics:
+      type: object
+      required: [experimentId, totalExposures, totalConversions, variants]
+      properties:
+        experimentId:
+          type: string
+          format: uuid
+        totalExposures:
+          type: integer
+          format: int64
+          example: 2048
+        totalConversions:
+          type: integer
+          format: int64
+          example: 624
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantAnalytics'

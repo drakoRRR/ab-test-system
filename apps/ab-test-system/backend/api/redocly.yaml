@@ -14,6 +14,8 @@ apis:
     root: ./flags.yml
   experiments:
     root: ./experiments.yml
+  analytics:
+    root: ./analytics.yml
 
 rules:
   # Critical errors only

@@ -22,6 +22,7 @@ import (
 
 	httphandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http"
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
+	analyticshandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/analytics"
 	apikeyhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	sdkgen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen/sdk"
@@ -32,11 +33,13 @@ import (
 	userhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
+	postgresanalytics "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/analytics"
 	postgresapikey "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/apikey"
 	postgresexperiment "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/experiment"
 	postgresflag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/flag"
 	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
+	analyticsservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/analytics"
 	apikeyservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/apikey"
 	eventservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event"
 	experimentservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/experiment"
@@ -131,7 +134,11 @@ func main() {
 	eventSvc := eventservice.NewService(producers.Get("events"))
 	sdkH := sdkhandler.NewHandler(sdkSvc, eventSvc)
 
-	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH)
+	analyticsRepo := postgresanalytics.NewRepo(db)
+	analyticsSvc := analyticsservice.NewService(analyticsRepo, experimentSvc)
+	analyticsH := analyticshandler.NewHandler(analyticsSvc)
+
+	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH, analyticsH)
 
 	router := mux.NewRouter()
 

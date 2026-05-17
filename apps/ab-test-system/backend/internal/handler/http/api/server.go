@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/analytics"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/flag"
@@ -14,6 +15,7 @@ type Server struct {
 	*apikey.APIKeyHandler
 	*flag.FlagHandler
 	*experiment.ExperimentHandler
+	*analytics.AnalyticsHandler
 }
 
 func NewServer(
@@ -22,6 +24,7 @@ func NewServer(
 	k *apikey.APIKeyHandler,
 	f *flag.FlagHandler,
 	e *experiment.ExperimentHandler,
+	a *analytics.AnalyticsHandler,
 ) *Server {
 	return &Server{
 		UserHandler:       u,
@@ -29,5 +32,6 @@ func NewServer(
 		APIKeyHandler:     k,
 		FlagHandler:       f,
 		ExperimentHandler: e,
+		AnalyticsHandler:  a,
 	}
 }

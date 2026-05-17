@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	domainevent "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/domain/event"
-	eventsvc "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event"
-	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event/mocks"
 )
 
 var fixedEvents = []domainevent.Event{
@@ -31,14 +29,14 @@ func TestService_Ingest(t *testing.T) {
 	tests := []struct {
 		name      string
 		events    []domainevent.Event
-		setupMock func(p *mocks.MockPublisher)
+		setupMock func(ms *mockedService)
 		wantErr   bool
 	}{
 		{
 			name:   "publishes events to publisher",
 			events: fixedEvents,
-			setupMock: func(p *mocks.MockPublisher) {
-				p.EXPECT().
+			setupMock: func(ms *mockedService) {
+				ms.publisher.EXPECT().
 					Publish(mock.Anything, fixedEvents).
 					Return(nil)
 			},
@@ -46,8 +44,8 @@ func TestService_Ingest(t *testing.T) {
 		{
 			name:   "empty batch still calls publisher",
 			events: []domainevent.Event{},
-			setupMock: func(p *mocks.MockPublisher) {
-				p.EXPECT().
+			setupMock: func(ms *mockedService) {
+				ms.publisher.EXPECT().
 					Publish(mock.Anything, []domainevent.Event{}).
 					Return(nil)
 			},
@@ -55,8 +53,8 @@ func TestService_Ingest(t *testing.T) {
 		{
 			name:   "propagates publisher error",
 			events: fixedEvents,
-			setupMock: func(p *mocks.MockPublisher) {
-				p.EXPECT().
+			setupMock: func(ms *mockedService) {
+				ms.publisher.EXPECT().
 					Publish(mock.Anything, fixedEvents).
 					Return(errors.New("kafka unavailable"))
 			},
@@ -66,11 +64,10 @@ func TestService_Ingest(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			pub := mocks.NewMockPublisher(t)
-			tc.setupMock(pub)
+			ms := newMockedService(t)
+			tc.setupMock(ms)
 
-			svc := eventsvc.NewService(pub)
-			err := svc.Ingest(context.Background(), tc.events)
+			err := ms.Ingest(context.Background(), tc.events)
 
 			if tc.wantErr {
 				require.Error(t, err)

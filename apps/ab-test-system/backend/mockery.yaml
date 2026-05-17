@@ -48,3 +48,10 @@ packages:
   github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event:
     interfaces:
       Publisher:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/analytics:
+    interfaces:
+      MetricsStorage:
+      ExperimentStorage:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/analytics:
+    interfaces:
+      Service:
