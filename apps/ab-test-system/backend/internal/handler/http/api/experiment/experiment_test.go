@@ -15,6 +15,7 @@ import (
 var fixedExperiment = domain.Experiment{
 	ID:             fixedExperimentID,
 	ProjectID:      fixedProjectID,
+	Key:            "checkout-btn-experiment",
 	Name:           "Checkout Button Experiment",
 	Status:         domain.StatusDraft,
 	TrafficPercent: 50,
@@ -35,6 +36,7 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 	}
 
 	validBody := &gen.CreateExperimentJSONRequestBody{
+		Key:            "checkout-btn-experiment",
 		Name:           "Checkout Button Experiment",
 		TrafficPercent: 50,
 		Variants: []gen.CreateVariantRequest{
@@ -52,6 +54,7 @@ func TestExperimentHandler_CreateExperiment(t *testing.T) {
 				mh.svc.EXPECT().
 					Create(mock.Anything, domain.CreateParams{
 						ProjectID:      fixedProjectID,
+						Key:            "checkout-btn-experiment",
 						Name:           "Checkout Button Experiment",
 						TrafficPercent: 50,
 						Variants: []domain.Variant{

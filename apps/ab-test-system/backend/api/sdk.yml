@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: SDK module
+  version: 1.0.0
+
+paths:
+  /sdk/config:
+    get:
+      tags: [sdk]
+      summary: Fetch project config for local evaluation
+      operationId: GetSdkConfig
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Project config snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDKConfig'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    SDKFlagRule:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [percentage]
+        value:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    SDKFlag:
+      type: object
+      required: [id, key, enabled, rules]
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: "checkout-button"
+        enabled:
+          type: boolean
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKFlagRule'
+
+    SDKVariant:
+      type: object
+      required: [id, key, weight]
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: "control"
+        weight:
+          type: integer
+
+    SDKExperiment:
+      type: object
+      required: [id, key, trafficPercent, variants]
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: "checkout-btn-experiment"
+        trafficPercent:
+          type: number
+          format: float
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKVariant'
+
+    SDKConfig:
+      type: object
+      required: [projectId, flags, experiments]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        flags:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKFlag'
+        experiments:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKExperiment'

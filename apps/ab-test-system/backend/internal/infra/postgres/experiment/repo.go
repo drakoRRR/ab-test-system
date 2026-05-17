@@ -27,6 +27,7 @@ type experimentRow struct {
 	ID             pgtype.UUID `db:"id"`
 	ProjectID      pgtype.UUID `db:"project_id"`
 	FlagID         pgtype.UUID `db:"flag_id"`
+	Key            string      `db:"key"`
 	Name           string      `db:"name"`
 	Description    string      `db:"description"`
 	Status         string      `db:"status"`
@@ -47,6 +48,7 @@ func (r experimentRow) toDomain() (domain.Experiment, error) {
 	exp := domain.Experiment{
 		ID:             uuid.UUID(r.ID.Bytes),
 		ProjectID:      uuid.UUID(r.ProjectID.Bytes),
+		Key:            r.Key,
 		Name:           r.Name,
 		Description:    r.Description,
 		Status:         domain.Status(r.Status),
@@ -86,15 +88,16 @@ func (r *Repo) Create(ctx context.Context, exp domain.Experiment) (domain.Experi
 	}
 
 	const q = `
-		INSERT INTO experiments (id, project_id, flag_id, name, description, status, traffic_percent, variants)
-		VALUES (@id, @project_id, @flag_id, @name, @description, @status, @traffic_percent, @variants)
-		RETURNING id, project_id, flag_id, name, description, status, traffic_percent, variants,
+		INSERT INTO experiments (id, project_id, flag_id, key, name, description, status, traffic_percent, variants)
+		VALUES (@id, @project_id, @flag_id, @key, @name, @description, @status, @traffic_percent, @variants)
+		RETURNING id, project_id, flag_id, key, name, description, status, traffic_percent, variants,
 		          created_at, updated_at, started_at, ended_at`
 
 	rows, err := r.db.Query(ctx, q, pgx.NamedArgs{
 		"id":              exp.ID,
 		"project_id":      exp.ProjectID,
 		"flag_id":         flagID,
+		"key":             exp.Key,
 		"name":            exp.Name,
 		"description":     exp.Description,
 		"status":          string(exp.Status),
@@ -119,7 +122,7 @@ func (r *Repo) Create(ctx context.Context, exp domain.Experiment) (domain.Experi
 
 func (r *Repo) List(ctx context.Context, projectID uuid.UUID) ([]domain.Experiment, error) {
 	const q = `
-		SELECT id, project_id, flag_id, name, description, status, traffic_percent, variants,
+		SELECT id, project_id, flag_id, key, name, description, status, traffic_percent, variants,
 		       created_at, updated_at, started_at, ended_at
 		FROM experiments WHERE project_id = @project_id ORDER BY created_at DESC`
 
@@ -148,7 +151,7 @@ func (r *Repo) List(ctx context.Context, projectID uuid.UUID) ([]domain.Experime
 
 func (r *Repo) GetByID(ctx context.Context, projectID, experimentID uuid.UUID) (domain.Experiment, error) {
 	const q = `
-		SELECT id, project_id, flag_id, name, description, status, traffic_percent, variants,
+		SELECT id, project_id, flag_id, key, name, description, status, traffic_percent, variants,
 		       created_at, updated_at, started_at, ended_at
 		FROM experiments WHERE project_id = @project_id AND id = @id`
 
@@ -181,7 +184,7 @@ func (r *Repo) Update(ctx context.Context, exp domain.Experiment) (domain.Experi
 		    traffic_percent = @traffic_percent, variants = @variants,
 		    started_at = @started_at, ended_at = @ended_at, updated_at = NOW()
 		WHERE id = @id AND project_id = @project_id
-		RETURNING id, project_id, flag_id, name, description, status, traffic_percent, variants,
+		RETURNING id, project_id, flag_id, key, name, description, status, traffic_percent, variants,
 		          created_at, updated_at, started_at, ended_at`
 
 	rows, err := r.db.Query(ctx, q, pgx.NamedArgs{

@@ -19,6 +19,7 @@ func toAPIExperiment(exp domain.Experiment) gen.Experiment {
 	out := gen.Experiment{
 		Id:             exp.ID,
 		ProjectId:      exp.ProjectID,
+		Key:            exp.Key,
 		Name:           exp.Name,
 		Status:         gen.ExperimentStatus(exp.Status),
 		TrafficPercent: float32(exp.TrafficPercent),

@@ -37,6 +37,7 @@ func (s *Service) Create(ctx context.Context, p domain.CreateParams) (domain.Exp
 		ID:             uuid.New(),
 		ProjectID:      p.ProjectID,
 		FlagID:         p.FlagID,
+		Key:            p.Key,
 		Name:           p.Name,
 		Description:    p.Description,
 		Status:         domain.StatusDraft,

@@ -82,6 +82,63 @@ func (_c *MockStorage_Create_Call) RunAndReturn(run func(context.Context, apikey
 	return _c
 }
 
+// GetByKeyHash provides a mock function with given fields: ctx, keyHash
+func (_m *MockStorage) GetByKeyHash(ctx context.Context, keyHash string) (apikey.Key, error) {
+	ret := _m.Called(ctx, keyHash)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByKeyHash")
+	}
+
+	var r0 apikey.Key
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (apikey.Key, error)); ok {
+		return rf(ctx, keyHash)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) apikey.Key); ok {
+		r0 = rf(ctx, keyHash)
+	} else {
+		r0 = ret.Get(0).(apikey.Key)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, keyHash)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockStorage_GetByKeyHash_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByKeyHash'
+type MockStorage_GetByKeyHash_Call struct {
+	*mock.Call
+}
+
+// GetByKeyHash is a helper method to define mock.On call
+//   - ctx context.Context
+//   - keyHash string
+func (_e *MockStorage_Expecter) GetByKeyHash(ctx interface{}, keyHash interface{}) *MockStorage_GetByKeyHash_Call {
+	return &MockStorage_GetByKeyHash_Call{Call: _e.mock.On("GetByKeyHash", ctx, keyHash)}
+}
+
+func (_c *MockStorage_GetByKeyHash_Call) Run(run func(ctx context.Context, keyHash string)) *MockStorage_GetByKeyHash_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockStorage_GetByKeyHash_Call) Return(_a0 apikey.Key, _a1 error) *MockStorage_GetByKeyHash_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockStorage_GetByKeyHash_Call) RunAndReturn(run func(context.Context, string) (apikey.Key, error)) *MockStorage_GetByKeyHash_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, projectID
 func (_m *MockStorage) List(ctx context.Context, projectID uuid.UUID) ([]apikey.Key, error) {
 	ret := _m.Called(ctx, projectID)

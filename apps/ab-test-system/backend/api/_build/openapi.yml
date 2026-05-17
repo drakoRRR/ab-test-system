@@ -905,6 +905,7 @@ components:
       required:
         - id
         - projectId
+        - key
         - name
         - status
         - trafficPercent
@@ -922,6 +923,9 @@ components:
           type: string
           format: uuid
           nullable: true
+        key:
+          type: string
+          example: checkout-btn-experiment
         name:
           type: string
           example: Checkout button experiment
@@ -957,10 +961,17 @@ components:
     CreateExperimentRequest:
       type: object
       required:
+        - key
         - name
         - trafficPercent
         - variants
       properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[a-z0-9][a-z0-9-]*[a-z0-9]$
+          example: checkout-btn-experiment
         name:
           type: string
           minLength: 1

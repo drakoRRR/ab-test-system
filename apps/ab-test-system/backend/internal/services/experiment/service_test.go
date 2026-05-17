@@ -64,6 +64,7 @@ func TestService_Create(t *testing.T) {
 
 			got, err := ms.Create(context.Background(), domain.CreateParams{
 				ProjectID:      projectID,
+				Key:            "btn-color",
 				Name:           "btn-color",
 				TrafficPercent: 50,
 				Variants:       variants,

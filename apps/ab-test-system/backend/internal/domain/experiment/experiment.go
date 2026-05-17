@@ -27,6 +27,7 @@ type Experiment struct {
 	ID             uuid.UUID
 	ProjectID      uuid.UUID
 	FlagID         *uuid.UUID
+	Key            string
 	Name           string
 	Description    string
 	Status         Status
@@ -64,6 +65,7 @@ func (e *Experiment) CanTransitionTo(next Status) bool {
 type CreateParams struct {
 	ProjectID      uuid.UUID
 	FlagID         *uuid.UUID
+	Key            string
 	Name           string
 	Description    string
 	TrafficPercent float64

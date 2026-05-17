@@ -28,6 +28,7 @@ func (h *ExperimentHandler) CreateExperiment(
 	exp, err := h.service.Create(ctx, domain.CreateParams{
 		ProjectID:      request.ProjectId,
 		FlagID:         request.Body.FlagId,
+		Key:            request.Body.Key,
 		Name:           request.Body.Name,
 		Description:    derefString(request.Body.Description),
 		TrafficPercent: float64(request.Body.TrafficPercent),

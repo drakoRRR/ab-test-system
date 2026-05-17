@@ -16,6 +16,7 @@ type Storage interface {
 	Create(ctx context.Context, key domain.Key) (domain.Key, error)
 	List(ctx context.Context, projectID uuid.UUID) ([]domain.Key, error)
 	Revoke(ctx context.Context, id, projectID uuid.UUID) error
+	GetByKeyHash(ctx context.Context, keyHash string) (domain.Key, error)
 }
 
 type Service struct {
@@ -63,6 +64,15 @@ func (s *Service) Revoke(ctx context.Context, projectID, keyID uuid.UUID) error 
 	}
 
 	return nil
+}
+
+func (s *Service) Validate(ctx context.Context, rawKey string) (uuid.UUID, error) {
+	key, err := s.storage.GetByKeyHash(ctx, sha256Hex(rawKey))
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("apikey.Service.Validate: %w", err)
+	}
+
+	return key.ProjectID, nil
 }
 
 func generateRawKey() (string, error) {

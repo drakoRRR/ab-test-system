@@ -23,5 +23,11 @@ func NewServer(
 	f *flag.FlagHandler,
 	e *experiment.ExperimentHandler,
 ) *Server {
-	return &Server{UserHandler: u, ProjectHandler: p, APIKeyHandler: k, FlagHandler: f, ExperimentHandler: e}
+	return &Server{
+		UserHandler:       u,
+		ProjectHandler:    p,
+		APIKeyHandler:     k,
+		FlagHandler:       f,
+		ExperimentHandler: e,
+	}
 }

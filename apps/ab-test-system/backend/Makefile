@@ -25,13 +25,17 @@ migrate-down-1:
 # ==================== API ====================
 .PHONY: bundle-api
 bundle-api:
-	@echo "Bundling OpenAPI specs..."
+	@echo "Bundling control-plane OpenAPI spec..."
 	redocly join --config api/redocly.yaml --without-x-tag-groups -o api/_build/openapi.yml
+	@echo "Bundling SDK OpenAPI spec..."
+	redocly bundle api/sdk.yml -o api/_build/sdk.yml
 
 .PHONY: generate-api
 generate-api: bundle-api
-	@echo "Generating OpenAPI code..."
+	@echo "Generating control-plane API code..."
 	oapi-codegen --config=internal/handler/http/api/codegen/config.yaml api/_build/openapi.yml
+	@echo "Generating SDK API code..."
+	oapi-codegen --config=internal/handler/http/api/codegen/sdk/config.yaml api/_build/sdk.yml
 
 # ==================== MOCKS ====================
 .PHONY: generate-mocks

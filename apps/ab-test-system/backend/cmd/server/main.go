@@ -23,9 +23,11 @@ import (
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
 	apikeyhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
+	sdkgen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen/sdk"
 	experimenthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment"
 	flaghandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/flag"
 	projecthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project"
+	sdkhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/sdk"
 	userhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
@@ -38,6 +40,7 @@ import (
 	experimentservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/experiment"
 	flagservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/flag"
 	projectservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/project"
+	sdkservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/sdk"
 	userservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/user"
 
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/pkg/config"
@@ -102,25 +105,39 @@ func main() {
 	apiKeySvc := apikeyservice.NewService(apiKeyRepo)
 	apiKeyH := apikeyhandler.NewHandler(apiKeySvc)
 
+	redisCacheClient := infraredis.NewCache(rdb)
+
 	flagRepo := postgresflag.NewRepo(db)
-	flagSvc := flagservice.NewService(flagRepo)
+	cachedFlagRepo := postgresflag.NewCachedRepo(flagRepo, redisCacheClient, log.Logger)
+	flagSvc := flagservice.NewService(cachedFlagRepo)
 	flagH := flaghandler.NewHandler(flagSvc)
 
 	experimentRepo := postgresexperiment.NewRepo(db)
-	experimentSvc := experimentservice.NewService(experimentRepo)
+	cachedExperimentRepo := postgresexperiment.NewCachedRepo(experimentRepo, redisCacheClient, log.Logger)
+	experimentSvc := experimentservice.NewService(cachedExperimentRepo)
 	experimentH := experimenthandler.NewHandler(experimentSvc)
+
+	sdkSvc := sdkservice.NewService(cachedFlagRepo, cachedExperimentRepo)
+	sdkH := sdkhandler.NewHandler(sdkSvc)
 
 	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH)
 
-	// Auth middleware applied globally — every route requires a valid Firebase JWT
-	authMiddleware := middleware.Auth(fbAuth)
-
 	router := mux.NewRouter()
+
+	// Control-plane routes — Firebase JWT auth.
 	strict := gen.NewStrictHandler(server, nil)
 	gen.HandlerWithOptions(strict, gen.GorillaServerOptions{
 		BaseURL:     "/api/v1",
 		BaseRouter:  router,
-		Middlewares: []gen.MiddlewareFunc{authMiddleware},
+		Middlewares: []gen.MiddlewareFunc{middleware.Auth(fbAuth)},
+	})
+
+	// SDK routes — API key auth applied per-operation via HandlerWithOptions.
+	sdkStrict := sdkgen.NewStrictHandler(sdkH, nil)
+	sdkgen.HandlerWithOptions(sdkStrict, sdkgen.GorillaServerOptions{
+		BaseURL:     "/api/v1",
+		BaseRouter:  router,
+		Middlewares: []sdkgen.MiddlewareFunc{middleware.ApiKeyAuth(apiKeySvc)},
 	})
 
 	httpSrv := httphandler.NewServer(cfg.HTTPServer, router)

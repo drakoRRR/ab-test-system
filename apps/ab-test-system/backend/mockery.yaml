@@ -37,3 +37,10 @@ packages:
   github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment:
     interfaces:
       Service:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/sdk:
+    interfaces:
+      Service:
+  github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/sdk:
+    interfaces:
+      FlagLister:
+      ExperimentLister:
