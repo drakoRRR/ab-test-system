@@ -17,27 +17,26 @@ A/B testing and feature flag management platform.
 
 ```
 ab-test-system/
-├── apps/ab-test-system/
-│   ├── backend/          # Main Go service (control plane + data plane)
-│   │   ├── api/          # OpenAPI specs (modular YAML + Redocly)
-│   │   ├── build/        # Dockerfiles
-│   │   ├── cmd/server/   # Entry point
-│   │   ├── config/       # YAML configs per environment
-│   │   ├── internal/     # Application code (not importable externally)
-│   │   │   ├── domain/   # Pure domain models (no deps)
-│   │   │   ├── handler/  # HTTP handlers (oapi-codegen generated interfaces)
-│   │   │   ├── infra/    # External integrations (GCP, DB)
-│   │   │   └── services/ # Business logic
-│   │   └── pkg/          # Shared utilities (importable)
-│   └── frontend/         # Next.js admin UI
-│       ├── app/          # App Router pages
-│       ├── components/   # Shared UI components (shadcn/ui)
-│       └── lib/          # API client, utils
-├── sdk/                  # Go SDK library (separate module)
+├── backend/          # Main Go service (control plane + data plane)
+│   ├── api/          # OpenAPI specs (modular YAML + Redocly)
+│   ├── build/        # Dockerfiles
+│   ├── cmd/server/   # Entry point
+│   ├── config/       # YAML configs per environment
+│   ├── internal/     # Application code (not importable externally)
+│   │   ├── domain/   # Pure domain models (no deps)
+│   │   ├── handler/  # HTTP handlers (oapi-codegen generated interfaces)
+│   │   ├── infra/    # External integrations (GCP, DB)
+│   │   └── services/ # Business logic
+│   └── pkg/          # Shared utilities (importable)
+├── frontend/         # Next.js admin UI
+│   ├── app/          # App Router pages
+│   ├── components/   # Shared UI components (shadcn/ui)
+│   └── lib/          # API client, utils
+├── sdk/              # Go SDK library (separate module)
 │   └── go.mod
-├── demo/                 # Demo app that uses the SDK
+├── demo/             # Demo app that uses the SDK
 │   └── go.mod
-└── k6/                   # Traffic generator scripts
+└── k6/               # Traffic generator scripts
     └── scenarios/
 ```
 
