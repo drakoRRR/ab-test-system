@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type contextKey string
@@ -40,6 +41,7 @@ func Auth(v TokenVerifier) func(http.Handler) http.Handler {
 
 			uid, err := v.VerifyToken(r.Context(), token)
 			if err != nil {
+				log.Error().Err(err).Str("path", r.URL.Path).Msg("token verification failed")
 				http.Error(w, `{"message":"invalid or expired token"}`, http.StatusUnauthorized)
 				return
 			}

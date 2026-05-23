@@ -5,6 +5,7 @@ import (
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/flag"
+	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/organization"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/project"
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/user"
 )
@@ -16,6 +17,7 @@ type Server struct {
 	*flag.FlagHandler
 	*experiment.ExperimentHandler
 	*analytics.AnalyticsHandler
+	*organization.Handler
 }
 
 func NewServer(
@@ -25,6 +27,7 @@ func NewServer(
 	f *flag.FlagHandler,
 	e *experiment.ExperimentHandler,
 	a *analytics.AnalyticsHandler,
+	o *organization.Handler,
 ) *Server {
 	return &Server{
 		UserHandler:       u,
@@ -33,5 +36,6 @@ func NewServer(
 		FlagHandler:       f,
 		ExperimentHandler: e,
 		AnalyticsHandler:  a,
+		Handler:           o,
 	}
 }

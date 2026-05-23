@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+  title: Organizations module
+  version: 1.0.0
+
+paths:
+  /organizations:
+    post:
+      tags: [organizations]
+      summary: Create organization
+      description: Creates a new organization and assigns the current user as admin
+      operationId: CreateOrganization
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationRequest'
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400':
+          $ref: './base.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './base.yml#/components/responses/Unauthorized'
+        '409':
+          $ref: './base.yml#/components/responses/Conflict'
+
+components:
+  schemas:
+    CreateOrganizationRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Acme Corp"
+
+    Organization:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time

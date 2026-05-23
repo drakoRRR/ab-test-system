@@ -20,6 +20,8 @@ tags:
   - name: users
     description: User management
     x-displayName: users
+  - name: organizations
+    x-displayName: organizations
   - name: projects
     x-displayName: projects
   - name: api-keys
@@ -75,6 +77,34 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /organizations:
+    post:
+      tags:
+        - organizations
+      summary: Create organization
+      description: Creates a new organization and assigns the current user as admin
+      operationId: CreateOrganization
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationRequest'
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /projects:
     post:
       tags:
@@ -693,6 +723,31 @@ components:
           type: string
           format: date-time
           example: '2026-02-15T12:00:00Z'
+    CreateOrganizationRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Acme Corp
+    Organization:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     Project:
       type: object
       required:

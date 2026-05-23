@@ -31,7 +31,7 @@ func New(ctx context.Context, gcpConf gcp.Config) (*Auth, error) {
 }
 
 func (a *Auth) VerifyToken(ctx context.Context, token string) (string, error) {
-	t, err := a.client.VerifyIDTokenAndCheckRevoked(ctx, token)
+	t, err := a.client.VerifyIDToken(ctx, token)
 	if err != nil {
 		return "", fmt.Errorf("verifying firebase auth token: %w", err)
 	}

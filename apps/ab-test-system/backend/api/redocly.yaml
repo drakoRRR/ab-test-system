@@ -6,6 +6,8 @@ apis:
     root: ./base.yml
   user:
     root: ./user.yml
+  organizations:
+    root: ./organizations.yml
   projects:
     root: ./projects.yml
   api_keys:
