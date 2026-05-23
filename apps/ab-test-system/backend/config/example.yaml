@@ -2,7 +2,7 @@ http_server:
   port: 8080
 
 gcp_auth:
-  project_id: "your-firebase-project-id"
+  project_id: "ab-test-system"
 
 database:
   dsn: "postgres://abtest:abtest@localhost:5432/abtest?sslmode=disable"

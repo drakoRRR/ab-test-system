@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -24,6 +25,7 @@ import (
 	httpapi "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api"
 	analyticshandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/analytics"
 	apikeyhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/apikey"
+	organizationhandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/organization"
 	gen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen"
 	sdkgen "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/codegen/sdk"
 	experimenthandler "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/api/experiment"
@@ -34,12 +36,14 @@ import (
 	"github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/handler/http/middleware"
 
 	postgresanalytics "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/analytics"
+	postgresorganization "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/organization"
 	postgresapikey "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/apikey"
 	postgresexperiment "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/experiment"
 	postgresflag "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/flag"
 	postgresproject "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/project"
 	postgresuser "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/infra/postgres/user"
 	analyticsservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/analytics"
+	organizationservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/organization"
 	apikeyservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/apikey"
 	eventservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/event"
 	experimentservice "github.com/drakoRRR/ab-test-system/apps/ab-test-system/backend/internal/services/experiment"
@@ -138,7 +142,11 @@ func main() {
 	analyticsSvc := analyticsservice.NewService(analyticsRepo, experimentSvc)
 	analyticsH := analyticshandler.NewHandler(analyticsSvc)
 
-	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH, analyticsH)
+	orgRepo := postgresorganization.NewRepo(db)
+	orgSvc := organizationservice.NewService(orgRepo, orgRepo)
+	orgH := organizationhandler.NewHandler(orgSvc, userSvc)
+
+	server := httpapi.NewServer(userH, projectH, apiKeyH, flagH, experimentH, analyticsH, orgH)
 
 	router := mux.NewRouter()
 
@@ -158,7 +166,14 @@ func main() {
 		Middlewares: []sdkgen.MiddlewareFunc{middleware.ApiKeyAuth(apiKeySvc)},
 	})
 
-	httpSrv := httphandler.NewServer(cfg.HTTPServer, router)
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
+
+	httpSrv := httphandler.NewServer(cfg.HTTPServer, middleware.Logger(corsHandler.Handler(router)))
 
 	// Start
 	go func() {

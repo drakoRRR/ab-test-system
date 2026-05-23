@@ -9,6 +9,21 @@ compose-up:
 compose-down:
 	docker compose down
 
+# ==================== DEV ====================
+# Starts infra, waits for health, runs migrations, then runs server+consumer.
+# Ctrl+C kills both processes cleanly.
+.PHONY: dev
+dev:
+	@echo "==> Starting infrastructure (waiting for health checks)..."
+	docker compose up -d --wait
+	@echo "==> Running migrations..."
+	$(MAKE) migrate-up
+	@echo "==> Starting server + consumer (Ctrl+C to stop both)..."
+	@trap 'kill 0' INT; \
+	go run cmd/server/main.go -config=./config/example.yaml & \
+	go run cmd/consumer/main.go -config=./config/example.yaml & \
+	wait
+
 # ==================== MIGRATIONS ====================
 .PHONY: migrate-up
 migrate-up:
@@ -96,6 +111,7 @@ clean:
 .PHONY: help
 help:
 	@echo "Available targets:"
+	@echo "  dev             - Start infra + migrate + run server & consumer"
 	@echo "  compose-up      - Start Docker Compose services"
 	@echo "  compose-down    - Stop Docker Compose services"
 	@echo "  migrate-up      - Run all pending migrations"
