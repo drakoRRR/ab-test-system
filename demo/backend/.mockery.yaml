@@ -1,0 +1,14 @@
+all: false
+dir: '{{.InterfaceDir}}'
+filename: mock_{{.InterfaceName}}_gen.go
+force-file-write: true
+generate: true
+log-level: info
+structname: 'Mock{{.InterfaceName}}'
+pkgname: '{{.SrcPackageName}}'
+template: testify
+require-template-schema-exists: false
+packages:
+  github.com/drakoRRR/ab-test-system/demo:
+    interfaces:
+      sdkClient:
