@@ -1,7 +1,6 @@
 # SplitLab — A/B Testing & Feature Flag Platform
 
 A self-hosted platform for managing feature flags and running A/B experiments.
-Built as a diploma project at [University Name].
 
 **Core capabilities:**
 
