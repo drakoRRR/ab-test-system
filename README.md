@@ -64,15 +64,28 @@ Analytics are computed on-demand from the raw events table using SQL aggregation
 
 ```
 ab-test-system/
-├── backend/          # Go service — control plane + SDK plane + event consumer
-├── frontend/         # Next.js 14 admin UI
-├── sdk/              # Go SDK library (separate module)
-├── demo/             # Demo storefront app that uses the SDK
-│   ├── backend/      # Go HTTP server
-│   └── static/       # Vanilla HTML frontend (no build step)
-├── k6/               # k6 traffic generator scripts
+├── backend/                  # Go service — control plane + SDK plane + event consumer
+├── frontend/                 # Next.js 14 admin UI
+├── sdk/                      # Go SDK library (separate Go module)
+├── demo/                     # Demo storefront app that uses the SDK
+│   ├── backend/              # Go HTTP server
+│   └── static/               # Vanilla HTML frontend (no build step)
+├── k6/                       # k6 traffic generator scripts
 │   └── scenarios/
-└── Makefile          # Top-level convenience targets (demo-setup, demo-run, demo-k6)
+├── infra/
+│   └── terraform/
+│       ├── modules/          # Reusable generic modules (iam, vpc, cloud_sql, …)
+│       └── environments/
+│           ├── staging/      # Staging values — small tiers, no SSL
+│           └── production/   # Production values — HA, custom domain, deletion protection
+├── .github/
+│   └── workflows/
+│       ├── lint.yml          # golangci-lint for backend + sdk
+│       ├── test.yml          # go test -race for backend + sdk
+│       ├── deploy.yml        # build + push + deploy (staging on main, production on tag)
+│       ├── terraform-plan.yml   # plan on PRs, posts diff as PR comment
+│       └── terraform-apply.yml  # manual dispatch — choose staging or production
+└── Makefile                  # Top-level convenience targets (demo-setup, demo-run, demo-k6)
 ```
 
 Each component has its own README:
@@ -82,26 +95,6 @@ Each component has its own README:
 | Backend | [backend/README.md](backend/README.md) |
 | Go SDK | [sdk/README.md](sdk/README.md) |
 | Demo app | [demo/README.md](demo/README.md) |
-
----
-
-## Tech Stack
-
-| Area | Technology                                      |
-|---|-------------------------------------------------|
-| Backend language | Go 1.25                                         |
-| HTTP routing | gorilla/mux                                     |
-| API definition | OpenAPI 3.0 + oapi-codegen                      |
-| Database | PostgreSQL 16                                   |
-| Migrations | golang-migrate                                  |
-| Message queue | Kafka 3.7 (KRaft)                               |
-| Cache | Redis 7.2                                       |
-| Auth | Firebase Auth (Google login)                    |
-| Frontend | Next.js 14, TypeScript, shadcn/ui, Tailwind CSS |
-| Charts | Recharts                                        |
-| SDK hashing | MurmurHash3-32 (inlined, no unsafe)             |
-| Load testing | k6                                              |
-| Containers | Docker + Docker Compose                         |
 
 ---
 
@@ -202,27 +195,34 @@ All values (names, sizes, CIDRs, feature flags) live exclusively in `environment
 | Event | Workflows triggered |
 |---|---|
 | Pull request → `main` | lint, test, terraform-plan (if `infra/terraform/**` changed) |
-| Push to `main` | lint, test, deploy → staging |
-| Push tag `v*` | deploy → production (with GitHub Environment approval) |
+| Push to `main` | lint, test, build & push → deploy staging |
+| Push tag `v*` | build & push → deploy production |
 | Manual dispatch | terraform-apply (select environment) |
 
 ### Deploy flow
 
 ```
 push main
-  └─► lint + test (parallel)
-        └─► build & push server:SHA, consumer:SHA to Artifact Registry
-              └─► gcloud run deploy splitlab-server --image …:SHA  (staging)
-                  gcloud run deploy splitlab-consumer --image …:SHA (staging)
+  ├─► lint (backend + sdk)
+  ├─► test (backend + sdk)
+  └─► build-staging
+        build & push server:SHA → Artifact Registry
+        build & push consumer:SHA → Artifact Registry
+          └─► deploy-staging
+                splitlab-server:SHA  → Cloud Run (staging)
+                splitlab-consumer:SHA → Cloud Run (staging)
 
 git tag v1.2.0 && git push --tags
-  └─► lint + test (parallel)
-        └─► build & push (same SHA)
-              └─► [required reviewer approval in GitHub Environment]
-                    └─► gcloud run deploy … (production)
+  └─► build-production
+        build & push server:SHA + server:v1.2.0 → Artifact Registry
+        build & push consumer:SHA + consumer:v1.2.0 → Artifact Registry
+          └─► [required reviewer approval — GitHub Environment: production]
+                deploy-production
+                  splitlab-server:SHA  → Cloud Run (production)
+                  splitlab-consumer:SHA → Cloud Run (production)
 ```
 
-Images are tagged by `github.sha` — the exact same artifact that was validated on staging is promoted to production.
+Staging and production are independent pipelines. A production tag does not require staging to pass first; if a promotion model is needed (same image across envs), images can be re-tagged instead of rebuilt. Production images receive two tags: an immutable SHA and a human-readable version tag (`v1.2.0`).
 
 ### Terraform workflow
 

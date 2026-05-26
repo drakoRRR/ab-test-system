@@ -32,7 +32,7 @@ func New(cfg Config) (*Client, error) {
 
 	c := &Client{
 		cfg:     cfg,
-		cache:   &configCache{},
+		cache:   newConfigCache(),
 		buffer:  newEventBuffer(cfg),
 		httpCli: newDefaultHTTPClient(cfg.ServiceURL, cfg.HTTPClient),
 		cancel:  cancel,
