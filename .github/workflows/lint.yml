@@ -24,7 +24,7 @@ jobs:
           go-version-file: backend/go.mod
           cache: false
 
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.12.2
           working-directory: backend
@@ -40,7 +40,7 @@ jobs:
           go-version-file: sdk/go.mod
           cache: false
 
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v7
         with:
           version: v2.12.2
           working-directory: sdk
