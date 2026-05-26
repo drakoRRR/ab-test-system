@@ -1,8 +1,5 @@
 version: "2"
 
-run:
-  allow-higher-go-version: true
-
 linters:
   default: none
   enable:
