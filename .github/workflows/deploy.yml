@@ -1,0 +1,107 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "backend/**"
+
+env:
+  REGION: us-central1
+
+jobs:
+  build-and-push:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER_STAGING }}
+          service_account: ${{ secrets.DEPLOY_SA_STAGING }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build & push server
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/build/Dockerfile
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/server:${{ github.sha }}
+
+      - name: Build & push consumer
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/build/Dockerfile.consumer
+          push: true
+          tags: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/consumer:${{ github.sha }}
+
+  deploy-staging:
+    name: Deploy → Staging
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.DEPLOY_SA }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: splitlab-server
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/server:${{ needs.build-and-push.outputs.image_tag }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: splitlab-consumer
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/consumer:${{ needs.build-and-push.outputs.image_tag }}
+
+  deploy-production:
+    name: Deploy → Production
+    needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.DEPLOY_SA }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: splitlab-server
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/server:${{ needs.build-and-push.outputs.image_tag }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: splitlab-consumer
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/splitlab/consumer:${{ needs.build-and-push.outputs.image_tag }}

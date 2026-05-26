@@ -1,0 +1,47 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "sdk/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "sdk/**"
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: Run tests
+        working-directory: backend
+        run: go test -race -coverprofile=coverage.out ./...
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.out
+
+  sdk:
+    name: SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: sdk/go.mod
+
+      - name: Run tests
+        working-directory: sdk
+        run: go test -race ./...

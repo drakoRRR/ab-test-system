@@ -1,0 +1,46 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "sdk/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "sdk/**"
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          working-directory: backend
+
+  sdk:
+    name: SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: sdk/go.mod
+          cache: false
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          working-directory: sdk

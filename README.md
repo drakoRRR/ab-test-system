@@ -155,6 +155,91 @@ Experiment results are computed using a **two-proportion z-test** on the raw exp
 
 ---
 
+## Infrastructure
+
+The platform runs on GCP and is fully described in Terraform under `infra/terraform/`.
+
+### Module layout
+
+```
+infra/terraform/
+├── modules/
+│   ├── iam/              # Service account + project IAM bindings
+│   ├── vpc/              # VPC network, subnet, VPC Access Connector, private services peering
+│   ├── artifact_registry/# Docker registry + IAM (writers / readers)
+│   ├── secret_manager/   # Secret + version + accessor IAM bindings
+│   ├── cloud_sql/        # PostgreSQL (private IP, backups, optional HA)
+│   ├── redis/            # Memorystore Redis (BASIC or STANDARD_HA)
+│   ├── kafka/            # Managed Apache Kafka cluster + topics
+│   ├── cloud_run/        # Cloud Run v2 service (server or consumer pattern)
+│   ├── load_balancer/    # Global LB → Serverless NEG → Cloud Run + SSL cert
+│   └── ci/               # Workload Identity Pool + GitHub OIDC provider binding
+└── environments/
+    ├── staging/          # staging values: small tiers, no SSL cert, deletion_protection=false
+    └── production/       # production values: HA, larger tiers, custom domain, deletion_protection=true
+```
+
+Modules are generic resource definitions — they contain no environment-specific values.
+All values (names, sizes, CIDRs, feature flags) live exclusively in `environments/`.
+
+---
+
+## Deployment
+
+### CI/CD workflows
+
+```
+.github/workflows/
+├── lint.yml             # golangci-lint for backend + sdk
+├── test.yml             # go test -race for backend + sdk
+├── deploy.yml           # build images → push to Artifact Registry → Cloud Run
+├── terraform-plan.yml   # terraform plan on PRs, posts output as PR comment
+└── terraform-apply.yml  # manual dispatch — choose staging or production
+```
+
+### Trigger rules
+
+| Event | Workflows triggered |
+|---|---|
+| Pull request → `main` | lint, test, terraform-plan (if `infra/terraform/**` changed) |
+| Push to `main` | lint, test, deploy → staging |
+| Push tag `v*` | deploy → production (with GitHub Environment approval) |
+| Manual dispatch | terraform-apply (select environment) |
+
+### Deploy flow
+
+```
+push main
+  └─► lint + test (parallel)
+        └─► build & push server:SHA, consumer:SHA to Artifact Registry
+              └─► gcloud run deploy splitlab-server --image …:SHA  (staging)
+                  gcloud run deploy splitlab-consumer --image …:SHA (staging)
+
+git tag v1.2.0 && git push --tags
+  └─► lint + test (parallel)
+        └─► build & push (same SHA)
+              └─► [required reviewer approval in GitHub Environment]
+                    └─► gcloud run deploy … (production)
+```
+
+Images are tagged by `github.sha` — the exact same artifact that was validated on staging is promoted to production.
+
+### Terraform workflow
+
+```bash
+# First-time setup — run once manually to bootstrap state bucket and initial resources
+cd infra/terraform/environments/staging
+terraform init
+terraform apply
+
+# After that — all changes go through CI:
+# 1. Open PR with infra changes → terraform-plan posts plan diff to PR
+# 2. Merge PR → review plan output
+# 3. Run terraform-apply workflow manually (Actions → Terraform Apply → Run workflow)
+```
+
+---
+
 ## License
 
 [MIT](LICENSE) © 2025 Vlad Musaelyan
