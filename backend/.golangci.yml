@@ -17,27 +17,25 @@ linters:
     - staticcheck
     - unconvert
     - unused
-
-linters-settings:
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-
-  revive:
-    rules:
-      - name: exported
-        arguments:
-          - disableStutteringCheck
-
-  gocritic:
-    disabled-checks:
-      - ifElseChain
-      - hugeParam
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - disableStutteringCheck
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+        - hugeParam
 
 issues:
-  exclude-rules:
-    - path: "_test\\.go"
-      linters:
-        - errcheck
-        - gocritic
+  exclusions:
+    rules:
+      - path: "_test\\.go"
+        linters:
+          - errcheck
+          - gocritic
