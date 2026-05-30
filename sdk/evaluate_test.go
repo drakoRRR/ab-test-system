@@ -1,6 +1,8 @@
 package sdk
 
 import (
+	"fmt"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -118,4 +120,65 @@ func TestEvaluateExperiment_VariantDistribution(t *testing.T) {
 	total := counts["control"] + counts["treatment"]
 	require.Greater(t, counts["control"], total*30/100)
 	require.Greater(t, counts["treatment"], total*30/100)
+}
+
+// --- Scenario D.b: determinism across repeated calls (1000 users × 5 calls) ---
+
+// TestEvaluateExperiment_StickyAcrossRepeatedCalls verifies that the same
+// (userID, experimentKey) pair always resolves to the same variant.
+// This is the algorithmic foundation of sticky bucketing.
+func TestEvaluateExperiment_StickyAcrossRepeatedCalls(t *testing.T) {
+	exp := Experiment{
+		Key:            "sticky-test",
+		TrafficPercent: 100,
+		Variants: []Variant{
+			{ID: "v1", Key: "control", Weight: 50},
+			{ID: "v2", Key: "treatment", Weight: 50},
+		},
+	}
+
+	for i := range 1000 {
+		uid := fmt.Sprintf("sticky-user-%d", i)
+		first := evaluateExperiment(exp, uid)
+		require.NotEmpty(t, first, "user %s should be assigned a variant", uid)
+		for call := 1; call < 5; call++ {
+			got := evaluateExperiment(exp, uid)
+			require.Equal(t, first, got,
+				"user %s call %d: expected %q, got %q", uid, call, first, got)
+		}
+	}
+}
+
+// --- Scenario D.d: bucket uniformity chi-square test (100k users → 10k buckets) ---
+
+// TestAssignBucket_ChiSquareUniformity generates 100 000 synthetic user IDs and
+// verifies that the MurmurHash3 output is uniformly distributed across all 10 000
+// buckets using a chi-square goodness-of-fit test (H₀: uniform distribution).
+//
+// With df = 9999 the expected chi² ≈ 9999; 3σ bounds are [9576, 10422].
+// A value outside this range would indicate a systematic bias in the hash function.
+func TestAssignBucket_ChiSquareUniformity(t *testing.T) {
+	const (
+		nUsers   = 100_000
+		nBuckets = 10_000
+	)
+
+	counts := make([]int, nBuckets)
+	for i := range nUsers {
+		uid := fmt.Sprintf("chi-user-%d", i)
+		counts[assignBucket(uid, "chi-square-test")]++
+	}
+
+	expected := float64(nUsers) / float64(nBuckets) // 10.0 per bucket
+	chi2 := 0.0
+	for _, c := range counts {
+		diff := float64(c) - expected
+		chi2 += diff * diff / expected
+	}
+
+	df := float64(nBuckets - 1)
+	sigma3 := 3 * math.Sqrt(2*df)
+	require.InDelta(t, df, chi2, sigma3,
+		"chi² = %.1f is outside 3σ range [%.0f, %.0f] for df=%.0f — bucket distribution is not uniform",
+		chi2, df-sigma3, df+sigma3, df)
 }
