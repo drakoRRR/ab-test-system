@@ -11,6 +11,13 @@ linters:
     - staticcheck
     - unconvert
     - unused
+  exclusions:
+    presets:
+      - std-error-handling
+    rules:
+      - path: "_test\\.go"
+        linters:
+          - errcheck
 
 issues:
   max-issues-per-linter: 0
