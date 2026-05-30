@@ -1,0 +1,22 @@
+# Compiled binaries
+backend/server
+backend/bin/
+demo/backend/sticky
+
+# Test results (runtime output)
+results/
+
+# IDE
+.idea/
+*.iml
+
+# Superpowers internal files
+docs/plans/
+docs/superpowers/
+
+# Environment files with secrets
+*.env
+!*.env.example
+
+# OS
+.DS_Store

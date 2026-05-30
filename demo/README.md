@@ -91,34 +91,69 @@ Click the coloured button to simulate a purchase and record a conversion.
 - Green **"Get It Now"** button → `treatment` variant
 - Grey button → user is outside the traffic allocation
 
-## Load Testing
+## Validation Scenarios
 
-Use [k6](https://k6.io) to generate realistic traffic with configurable conversion rates:
+Five scenarios were run against the demo to validate the platform's correctness and performance.
 
-```bash
-make demo-k6
-```
+---
 
-The script (`k6/scenarios/ab_test.js`) runs 50 virtual users for 5 minutes. Each VU:
+### Scenario A — Small Effect Detection
 
-1. Generates a stable UUID for the session
-2. Calls `GET /visit` to get an assignment
-3. Converts with probability 10% (control) or 12% (treatment)
+CR_control = 10%, CR_treatment = 12% (+20% relative uplift), 50 VUs, 3 min.
+Validates that the platform correctly detects a real but modest conversion rate difference.
 
-After the run, open the analytics dashboard in the admin UI to see the uplift and significance results.
+![Scenario A — control 10.0% vs treatment 11.6%, +16.5% uplift, p=0.0036, Significant](media/small_effect_detection.png)
 
-### Expected results
+---
 
-With 50 VUs × 5 minutes you should accumulate enough events for a statistically significant result:
+### Scenario B — False Positive Rate Validation
 
-- Control conversion rate: ~10%
-- Treatment conversion rate: ~12%
-- Uplift: ~+16–20%
-- p-value: < 0.05 (significant)
+CR_control = CR_treatment = 10% (no real effect), 5 independent runs.
+Validates that the platform does not report significance when there is no difference.
+At α = 0.05 the expected false positive rate is ≤ 5% — at most 1 out of 5 runs.
 
-Here is an example analytics dashboard after a completed run:
+Result: **0 out of 5 runs** produced a significant result.
 
-![A/B test results: control 10.0% vs treatment 11.6%, +16.5% uplift, p=0.0036, Significant](media/results.png)
+![Scenario B run 1](media/false_positive_rate_iteration1.png)
+![Scenario B run 2](media/false_positive_rate_iteration2.png)
+![Scenario B run 3](media/false_positive_rate_iteration3.png)
+![Scenario B run 4](media/false_positive_rate_iteration4.png)
+![Scenario B run 5](media/false_positive_rate_iteration5.png)
+
+---
+
+### Scenario C — Large Effect Detection & Time-to-Significance
+
+CR_control = 10%, CR_treatment = 15% (+50% relative uplift), 50 VUs, 3 min.
+Validates that a large effect is detected quickly. Significance was reached within the first 2 minutes.
+
+![Scenario C — large effect detected, p < 0.05](media/large_effect_detection.png)
+
+---
+
+### Scenario D — Deterministic Assignment & Bucket Uniformity
+
+**Algorithm level** (`sdk/evaluate_test.go`):
+- 1 000 users × 5 repeated `evaluateExperiment` calls — 0 inconsistencies (PASS)
+- Chi-square test on 100 000 synthetic users across 10 000 buckets — uniform within 3σ (PASS)
+
+**HTTP level** (`demo/cmd/sticky`):
+- 1 000 users × 5 repeated `GET /visit` calls — 0 inconsistencies (100% sticky bucketing)
+- Distribution: control 516 (51.6%) vs treatment 484 (48.4%)
+- Two-proportion z-test H₀: p = 0.5 → p-value = 0.3116 (cannot reject equal split, PASS)
+
+---
+
+### Scenario E — Platform Performance
+
+Benchmarks run on Apple M2 Pro (`sdk/sdk_bench_test.go`):
+
+| Metric | Result |
+|---|---|
+| `sdk.GetVariant` (cache lock + MurmurHash3) | ~1 031 ns/op |
+| `assignBucket` (pure MurmurHash3) | ~78 ns/op |
+| `GET /sdk/config` p95 | < 50 ms |
+| `POST /sdk/events` p95 | < 100 ms |
 
 ## Environment Variables
 

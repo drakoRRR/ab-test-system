@@ -13,7 +13,7 @@ A self-hosted platform for managing feature flags and running A/B experiments.
 - Admin UI for managing flags, experiments, and reviewing analytics
 - Demo app + k6 load generator for end-to-end validation
 
-![Analytics dashboard showing control 10.0% vs treatment 11.6%, +16.5% uplift, p=0.0036](demo/media/results.png)
+![Analytics dashboard showing control 10.0% vs treatment 11.6%, +16.5% uplift, p=0.0036](demo/media/small_effect_detection.png)
 
 ---
 

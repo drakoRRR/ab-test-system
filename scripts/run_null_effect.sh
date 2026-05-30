@@ -59,6 +59,10 @@ for i in $(seq 1 "${RUNS}"); do
   curl -sf -X POST "${API_URL}/projects/${PROJECT_ID}/experiments/${EXP_ID}/start" \
     -H "${AUTH_HEADER}" > /dev/null
 
+  # ── Wait for demo SDK to poll the new experiment config (PollInterval=30s) ─
+  echo "  waiting 35s for SDK config refresh..."
+  sleep 35
+
   # ── Run k6 ────────────────────────────────────────────────────────────────
   VUS="${VUS}" DURATION="${DURATION}" \
     CR_CONTROL=0.10 CR_TREATMENT=0.10 \
