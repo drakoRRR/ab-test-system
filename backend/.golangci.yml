@@ -6,7 +6,6 @@ linters:
     - bodyclose
     - errcheck
     - gocritic
-    - gofmt
     - govet
     - ineffassign
     - misspell
@@ -31,11 +30,13 @@ linters:
       disabled-checks:
         - ifElseChain
         - hugeParam
-
-issues:
   exclusions:
     rules:
       - path: "_test\\.go"
         linters:
           - errcheck
           - gocritic
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
