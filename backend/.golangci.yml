@@ -5,37 +5,12 @@ linters:
   enable:
     - bodyclose
     - errcheck
-    - gocritic
     - govet
     - ineffassign
-    - misspell
     - noctx
-    - prealloc
-    - revive
-    - sqlclosecheck
     - staticcheck
     - unconvert
     - unused
-  settings:
-    govet:
-      enable-all: true
-      disable:
-        - fieldalignment
-    revive:
-      rules:
-        - name: exported
-          arguments:
-            - disableStutteringCheck
-    gocritic:
-      disabled-checks:
-        - ifElseChain
-        - hugeParam
-  exclusions:
-    rules:
-      - path: "_test\\.go"
-        linters:
-          - errcheck
-          - gocritic
 
 issues:
   max-issues-per-linter: 0

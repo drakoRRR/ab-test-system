@@ -90,8 +90,8 @@ func main() {
 		log.Fatal().Err(err).Msg("connecting to redis")
 	}
 	defer func() {
-		if err := rdb.Close(); err != nil {
-			log.Error().Err(err).Msg("closing redis")
+		if closeErr := rdb.Close(); closeErr != nil {
+			log.Error().Err(closeErr).Msg("closing redis")
 		}
 	}()
 	log.Info().Msg("redis connected")

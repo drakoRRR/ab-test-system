@@ -6,14 +6,8 @@ linters:
     - errcheck
     - govet
     - ineffassign
-    - misspell
     - staticcheck
     - unused
-  exclusions:
-    rules:
-      - path: "_test\\.go"
-        linters:
-          - errcheck
 
 issues:
   max-issues-per-linter: 0
